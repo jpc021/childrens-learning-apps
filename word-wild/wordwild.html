@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WordWild">
+<meta name="mobile-web-app-capable" content="yes">
 <title>WordWild</title>
 <style>
   :root{
@@ -36,6 +39,10 @@
   .logo svg{width:100%;height:100%;display:block;}
   .wordmark{font-weight:800;font-size:22px;letter-spacing:0.2px;line-height:1;}
   .wordmark em{font-style:normal;color:var(--coral);}
+  .homebtn{display:flex;align-items:center;justify-content:center;text-decoration:none;
+    background:var(--card);border:none;border-radius:16px;padding:8px 12px;
+    font-weight:800;font-size:15px;color:var(--ink);box-shadow:var(--shadow);}
+  .homebtn:active{transform:translateY(4px);box-shadow:none;}
   .dexbtn{display:flex;align-items:center;gap:8px;background:var(--card);border:none;
     border-radius:16px;padding:8px 12px 8px 10px;font-weight:800;font-size:15px;
     color:var(--ink);box-shadow:var(--shadow);}
@@ -171,6 +178,7 @@
 
   <div class="screen active" id="mapScreen">
     <div class="topbar">
+      <a class="homebtn" href="../index.html">Home</a>
       <div class="brand">
         <span class="logo" aria-hidden="true">
           <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
@@ -239,6 +247,18 @@
 </div>
 
 <script>
+if (!window.storage) {
+  window.storage = {
+    async get(key) {
+      const value = localStorage.getItem(key);
+      return value == null ? null : { value };
+    },
+    async set(key, value) {
+      localStorage.setItem(key, value);
+    }
+  };
+}
+
 /* ---------------- REGION / WORD DATA ---------------- */
 const REGIONS = [
   {
