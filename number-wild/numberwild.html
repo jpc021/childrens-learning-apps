@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WordWild</title>
+<title>NumberWild</title>
 <style>
   :root{
-    --sky-top:#8fd3f4;
-    --sky-bot:#c9f2d0;
-    --grass:#4caf6b;
-    --grass-dark:#3a8a54;
-    --ink:#20362c;
-    --cream:#fffaf0;
-    --sun:#ffc94d;
-    --coral:#ff7a5c;
-    --berry:#7b5cff;
+    --sky-top:#7ec8d4;
+    --sky-bot:#f4d4b0;
+    --grass:#d4784a;
+    --grass-dark:#b85c32;
+    --ink:#2a2418;
+    --cream:#fff8ee;
+    --sun:#f4c14d;
+    --coral:#e86a3a;
+    --berry:#2a9d8f;
     --card:#ffffffee;
     --shadow: 0 6px 0 rgba(0,0,0,0.15);
   }
@@ -41,14 +41,14 @@
     color:var(--ink);box-shadow:var(--shadow);}
   .dexbtn:active{transform:translateY(4px);box-shadow:none;}
   .dexgrid{width:22px;height:22px;display:grid;grid-template-columns:1fr 1fr;gap:2px;
-    background:linear-gradient(135deg,#7b5cff,#ff7a5c);border-radius:7px;padding:4px;}
+    background:linear-gradient(135deg,#2a9d8f,#e86a3a);border-radius:6px;padding:4px;}
   .dexgrid i{background:#fff;border-radius:2px;display:block;}
   .dexcount{background:var(--sun);color:#5a3d00;font-size:11px;font-weight:800;
     min-width:20px;height:20px;border-radius:10px;display:none;align-items:center;
     justify-content:center;padding:0 6px;}
   .dexcount.show{display:flex;}
 
-  .regionswitch{display:flex;align-items:center;justify-content:center;gap:12px;
+  .regionswitch{display:flex;align-items:center;justify-content:space-between;gap:12px;
     padding:4px 16px 10px;flex-shrink:0;}
   .regionswitch button{background:var(--card);border:none;border-radius:12px;
     width:38px;height:38px;font-size:18px;box-shadow:var(--shadow);}
@@ -56,7 +56,7 @@
   .regionswitch button:not(:disabled):active{transform:translateY(4px);box-shadow:none;}
   .regionname{text-align:center;min-width:180px;}
   .regionname h2{margin:0;font-size:18px;}
-  .regionname p{margin:0;font-size:11px;color:#456;}
+  .regionname p{margin:0;font-size:11px;color:#5a4a38;}
 
   #mapScroll{flex:1;overflow-y:auto;padding:6px 0 40px;position:relative;}
   .zonewrap{padding:14px 20px;display:flex;flex-direction:column;gap:22px;align-items:center;}
@@ -65,15 +65,16 @@
     position:relative;}
   .zone.locked{opacity:0.55;}
   .zone.master{background:linear-gradient(120deg,#fff5da,#ffe6c0);}
-  .zone .badge{width:58px;height:58px;border-radius:50%;flex-shrink:0;
+  .zone.next-region{background:linear-gradient(120deg,#e8f6f4,#dceeee);}
+  .zone .badge{width:58px;height:58px;border-radius:12px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;font-size:28px;
-    background:radial-gradient(circle at 30% 30%, #fff, var(--grass));
-    border:3px solid var(--grass-dark);}
+    background:radial-gradient(circle at 30% 30%, #fff, var(--berry));
+    border:3px solid #1d7a6f;}
   .zone.master .badge{background:radial-gradient(circle at 30% 30%, #fff, var(--sun));border-color:#c99a2c;}
   .zone.locked .badge{background:#ccc;border-color:#999;}
   .zone .info{flex:1;}
   .zone .info h3{margin:0 0 4px;font-size:17px;}
-  .zone .info p{margin:0;font-size:12px;color:#556;}
+  .zone .info p{margin:0;font-size:12px;color:#5a4a38;}
   .zone .go{background:var(--coral);color:#fff;border:none;border-radius:14px;
     padding:10px 14px;font-weight:700;font-size:13px;box-shadow:0 4px 0 #c65b42;}
   .zone.master .go{background:var(--sun);color:#5a3d00;box-shadow:0 4px 0 #c99a2c;}
@@ -81,8 +82,8 @@
   .zone .lock-icon{font-size:22px;}
   .connector{width:4px;height:22px;background:repeating-linear-gradient(180deg,var(--grass-dark) 0 6px, transparent 6px 12px);}
 
-  #battleScreen{background:linear-gradient(180deg,#a3e2ff, #d8f6c8);}
-  #battleScreen.gym-mode{background:linear-gradient(180deg,#9ad4f5, #ffe7a8);}
+  #battleScreen{background:linear-gradient(180deg,#8fd6df, #f6ddb8);}
+  #battleScreen.gym-mode{background:linear-gradient(180deg,#7ec8c4, #f3c27a);}
   #battleScreen.master-mode{background:linear-gradient(180deg,#f0c36a, #f3b08a);}
   .battle-top{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;}
   .zone-label{font-weight:800;font-size:14px;background:var(--card);padding:6px 12px;border-radius:12px;box-shadow:var(--shadow);}
@@ -90,10 +91,13 @@
   #creatureBox{width:170px;height:170px;display:flex;align-items:center;justify-content:center;
     filter:drop-shadow(0 10px 6px rgba(0,0,0,0.15));}
   #creatureBox svg{width:100%;height:100%;}
-  .speakbtn{background:var(--sun);border:none;border-radius:50%;width:56px;height:56px;
+  #questionDisplay{font-size:36px;font-weight:900;background:var(--card);
+    padding:8px 22px;border-radius:16px;box-shadow:var(--shadow);display:none;letter-spacing:1px;}
+  #questionDisplay.show{display:block;}
+  .speakbtn{background:var(--sun);border:none;border-radius:12px;width:56px;height:56px;
     font-size:26px;box-shadow:0 4px 0 #c99a2c;margin-top:4px;}
   .speakbtn:active{transform:translateY(4px);box-shadow:none;}
-  .prompt{font-size:13px;color:#456;margin-top:2px;text-align:center;padding:0 20px;}
+  .prompt{font-size:13px;color:#5a4a38;margin-top:2px;text-align:center;padding:0 20px;}
   .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 26px;flex-shrink:0;}
   .choice{background:var(--card);border:3px solid transparent;border-radius:18px;
     padding:18px 8px;font-size:24px;font-weight:800;text-align:center;box-shadow:var(--shadow);}
@@ -101,32 +105,32 @@
   .choice.correct{background:#c8f7c5;border-color:#4caf6b;}
   .choice.wrong{background:#ffd2c9;border-color:var(--coral);}
   .progressbar{display:flex;gap:4px;justify-content:center;padding:6px 0 2px;}
-  .progressbar span{width:9px;height:9px;border-radius:50%;background:#ffffff88;border:1px solid #ffffffcc;}
+  .progressbar span{width:9px;height:9px;border-radius:3px;background:#ffffff88;border:1px solid #ffffffcc;}
   .progressbar span.filled{background:var(--sun);border-color:#c99a2c;}
   .boss-flag{position:absolute;top:8px;left:50%;transform:translateX(-50%);
     background:var(--berry);color:#fff;font-size:15px;font-weight:800;padding:8px 18px;
-    border-radius:14px;letter-spacing:0.8px;box-shadow:0 4px 0 #5a3fd4;z-index:2;}
-  .boss-flag.master{background:linear-gradient(90deg,#ff9d00,#ff5fa2);box-shadow:0 4px 0 #c99a2c;}
+    border-radius:14px;letter-spacing:0.8px;box-shadow:0 4px 0 #1d7a6f;z-index:2;}
+  .boss-flag.master{background:linear-gradient(90deg,#ff9d00,#e86a3a);box-shadow:0 4px 0 #c99a2c;}
   .gym-announce{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
-    background:rgba(32,54,44,0.55);z-index:20;padding:24px;}
+    background:rgba(32,24,16,0.62);z-index:20;padding:24px;}
   .gym-announce.show{display:flex !important;}
-  .gym-announce-card{background:linear-gradient(165deg,var(--sun),var(--coral));color:var(--ink);
+  .gym-announce-card{background:linear-gradient(165deg,#f4c14d,#e86a3a);color:#2a2418;
     border:4px solid #fff;border-radius:28px;padding:32px 22px 28px;text-align:center;
     max-width:360px;width:100%;opacity:1;
     box-shadow:0 10px 0 #c65b42, 0 18px 30px rgba(0,0,0,0.28);
     animation:gympop 0.4s ease;}
   .gym-announce-card h2{margin:0 0 12px;font-size:30px;line-height:1.15;letter-spacing:0.2px;}
   .gym-announce-card p{margin:0 0 22px;font-size:20px;font-weight:800;line-height:1.35;color:#3a2416;}
-  .gym-announce-tag{display:inline-block;background:var(--berry);color:#fff;font-size:13px;
+  .gym-announce-tag{display:inline-block;background:#2a9d8f;color:#fff;font-size:13px;
     font-weight:800;padding:6px 14px;border-radius:10px;margin-bottom:14px;letter-spacing:1px;}
-  .gym-go{background:var(--berry);color:#fff;border:none;border-radius:18px;
-    padding:16px 28px;font-size:22px;font-weight:800;box-shadow:0 5px 0 #5a3fd4;width:100%;}
+  .gym-go{background:#2a9d8f;color:#fff;border:none;border-radius:18px;
+    padding:16px 28px;font-size:22px;font-weight:800;box-shadow:0 5px 0 #145e56;width:100%;}
   .gym-go:active{transform:translateY(4px);box-shadow:none;}
   .gym-go:disabled{opacity:0.7;}
-  .gym-announce-card.win{background:linear-gradient(165deg,#8ce99a,var(--grass));}
-  .gym-announce-card.win .gym-announce-tag{background:var(--grass-dark);}
-  .gym-announce-card.lose{background:linear-gradient(165deg,#ffb4a2,var(--coral));}
-  .gym-announce-card.lose .gym-announce-tag{background:#c65b42;}
+  .gym-announce-card.win{background:linear-gradient(165deg,#8ce99a,#2a9d8f);}
+  .gym-announce-card.win .gym-announce-tag{background:#145e56;}
+  .gym-announce-card.lose{background:linear-gradient(165deg,#ffb4a2,#e86a3a);}
+  .gym-announce-card.lose .gym-announce-tag{background:#9a3a28;}
   @keyframes gympop{0%{transform:scale(0.72) rotate(-5deg);}
     70%{transform:scale(1.06) rotate(2deg);}
     100%{transform:scale(1) rotate(0deg);}}
@@ -174,18 +178,16 @@
       <div class="brand">
         <span class="logo" aria-hidden="true">
           <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="18" cy="18" r="17" fill="#ffc94d"/>
-            <circle cx="11" cy="10" r="5.5" fill="#ff7a5c"/>
-            <circle cx="25" cy="10" r="5.5" fill="#ff7a5c"/>
-            <circle cx="18" cy="20" r="12" fill="#ff7a5c"/>
-            <circle cx="14.2" cy="18" r="2.2" fill="#20362c"/>
-            <circle cx="21.8" cy="18" r="2.2" fill="#20362c"/>
-            <circle cx="15" cy="17.2" r="0.7" fill="#fff"/>
-            <circle cx="22.6" cy="17.2" r="0.7" fill="#fff"/>
-            <path d="M14 24 Q18 27.5 22 24" stroke="#20362c" fill="none" stroke-width="1.8" stroke-linecap="round"/>
+            <rect x="2" y="2" width="32" height="32" rx="6" fill="#f4c14d"/>
+            <rect x="6" y="8" width="8" height="8" rx="2" fill="#e86a3a"/>
+            <rect x="22" y="8" width="8" height="8" rx="2" fill="#e86a3a"/>
+            <rect x="7" y="14" width="22" height="16" rx="3" fill="#e86a3a"/>
+            <rect x="12" y="19" width="3" height="3" fill="#2a2418"/>
+            <rect x="21" y="19" width="3" height="3" fill="#2a2418"/>
+            <path d="M14 25 H22" stroke="#2a2418" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </span>
-        <span class="wordmark">Word<em>Wild</em></span>
+        <span class="wordmark">Number<em>Wild</em></span>
       </div>
       <button class="dexbtn" onclick="openDex()">
         <span class="dexgrid" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
@@ -210,8 +212,9 @@
     <div class="stage">
       <div class="boss-flag" id="bossFlag" style="display:none;">GYM LEADER</div>
       <div id="creatureBox"></div>
-      <button class="speakbtn" onclick="speakWord()">🔊</button>
-      <div class="prompt" id="promptText">Tap the matching word!</div>
+      <div id="questionDisplay"></div>
+      <button class="speakbtn" onclick="speakQuestion()">🔊</button>
+      <div class="prompt" id="promptText">Tap the matching number!</div>
       <div class="progressbar" id="battleProgress"></div>
       <div class="caughtburst" id="caughtburst"></div>
     </div>
@@ -239,181 +242,407 @@
 </div>
 
 <script>
-/* ---------------- REGION / WORD DATA ---------------- */
+/* ---------------- CONTENT HELPERS ---------------- */
+function rangeItems(lo, hi){
+  return Array.from({length: hi - lo + 1}, (_, i) => String(lo + i));
+}
+function addItems(){
+  const items = [];
+  for(let a=0;a<=9;a++) for(let b=0;b<=9;b++) items.push(a + '+' + b);
+  return items;
+}
+function subItems(){
+  const items = [];
+  for(let a=0;a<=9;a++) for(let b=0;b<=a;b++) items.push(a + '-' + b);
+  return items;
+}
+function onesItems(){
+  const items = [];
+  for(let d=0;d<=9;d++){
+    items.push('ones:' + (10 + d));
+    items.push('ones:' + (20 + d));
+  }
+  items.push('ones:7');
+  items.push('ones:100');
+  return items;
+}
+function tensItems(){
+  const items = [];
+  for(let t=1;t<=9;t++){
+    items.push('tens:' + (t * 10));
+    items.push('tens:' + (t * 10 + 7));
+  }
+  return items;
+}
+
+/* ---------------- REGION / ITEM DATA ---------------- */
 const REGIONS = [
   {
-    name: "Meadow Realm", subtitle: "Sight Words I", masterTitle: "Meadow Master",
+    name: "Pebble Plains", subtitle: "Sight Numbers", masterTitle: "Pebble Master",
     zones: [
-      {name:"Sunny Meadow", icon:"🌼", words:["a","and","big","go","up"]},
-      {name:"Bubble Brook", icon:"💧", words:["can","come","down","find","help"]},
-      {name:"Whisper Woods", icon:"🍃", words:["here","I","in","is","it"]},
-      {name:"Sandy Dunes", icon:"🏖️", words:["jump","little","look","make","me"]},
-      {name:"Frosty Peak", icon:"❄️", words:["my","not","one","play","red"]},
-      {name:"Starlit Cove", icon:"⭐", words:["run","said","see","the","three"]},
-      {name:"Wander Falls", icon:"🌊", words:["to","two","we","where","yellow"]},
-      {name:"Rainbow Summit", icon:"🌈", words:["you","funny","away","blue","for"]},
+      {name:"Counting Glade", icon:"🟩", type:"identify", items:rangeItems(0,10), catchesForBoss:8},
+      {name:"Teen Trail", icon:"🌿", type:"identify", items:rangeItems(11,20), catchesForBoss:8},
+      {name:"Fifty Fields", icon:"🌾", type:"identify", items:rangeItems(21,50), catchesForBoss:12},
+      {name:"Eighty Hills", icon:"⛰️", type:"identify", items:rangeItems(51,80), catchesForBoss:12},
+      {name:"Century Ridge", icon:"🏔️", type:"identify", items:rangeItems(81,100), catchesForBoss:10},
     ]
   },
   {
-    name: "Ember Highlands", subtitle: "Sight Words II", masterTitle: "Highland Master",
+    name: "Operator Ridge", subtitle: "Facts & Place Value", masterTitle: "Operator Master",
     zones: [
-      {name:"Ashen Trail", icon:"🔥", words:["all","am","are","at","ate"]},
-      {name:"Copper Hollow", icon:"🍂", words:["be","black","brown","but","came"]},
-      {name:"Stonebridge", icon:"🌉", words:["did","do","eat","four","get"]},
-      {name:"Amber Grove", icon:"🍁", words:["good","have","he","into","like"]},
-      {name:"Thistle Ridge", icon:"🌾", words:["must","new","no","now","on"]},
-      {name:"Foggy Hollow", icon:"🌫️", words:["our","out","please","pretty","ran"]},
-      {name:"Duskwatch Tower", icon:"🏯", words:["ride","saw","say","she","so"]},
-      {name:"Ember Peak", icon:"⛰️", words:["soon","that","there","they","this"]},
+      {name:"Sum Springs", icon:"➕", type:"add", items:addItems(), catchesForBoss:12},
+      {name:"Difference Dell", icon:"➖", type:"sub", items:subItems(), catchesForBoss:12},
+      {name:"Ones Outpost", icon:"1️⃣", type:"ones", items:onesItems(), catchesForBoss:8},
+      {name:"Tens Tower", icon:"🔟", type:"tens", items:tensItems(), catchesForBoss:8},
     ]
   },
 ];
 const MAX_LEVEL = 5;
-const CATCHES_PER_BOSS = 8;
 const GYM_STREAK = 3;
 const GYM_MISSES = 3;
 const MASTER_STREAK = 5;
 
-function regionAllWords(r){ return r.zones.flatMap(z=>z.words); }
-const ALL_WORDS = REGIONS.flatMap(regionAllWords);
+function regionAllItems(r){ return r.zones.flatMap(z => z.items); }
+const ALL_ITEMS = REGIONS.flatMap(regionAllItems);
+
+const ITEM_META = {};
+REGIONS.forEach((r, ri) => r.zones.forEach((z, zi) => {
+  z.items.forEach(id => { ITEM_META[id] = { type: z.type, regionIndex: ri, zoneIndex: zi }; });
+}));
 
 /* ---------------- STATE ---------------- */
 let state = {
-  words: {},
+  items: {},
   regionUnlocked: 0,
   zoneUnlockedInRegion: {},
   bossCleared: {},
   masterCleared: {},
 };
-ALL_WORDS.forEach(w=>{ if(!(w in state.words)) state.words[w]=0; });
-REGIONS.forEach((r,i)=>{ if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i]=0; });
+ALL_ITEMS.forEach(id => { if(!(id in state.items)) state.items[id] = 0; });
+REGIONS.forEach((_, i) => { if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i] = 0; });
 
 let viewingRegion = 0;
-let current = { regionIndex:0, zoneIndex:0, word:null, mode:'zone', streak:0, misses:0, voice:null };
+let current = { regionIndex:0, zoneIndex:0, item:null, q:null, mode:'zone', streak:0, misses:0, voice:null };
 
 /* ---------------- STORAGE ---------------- */
 async function loadState(){
   try{
-    const res = await window.storage.get('wordwild-save', false);
+    const res = await window.storage.get('numberwild-save', false);
     if(res && res.value){
       const saved = JSON.parse(res.value);
       state = Object.assign(state, saved);
-      ALL_WORDS.forEach(w=>{ if(!(w in state.words)) state.words[w]=0; });
-      REGIONS.forEach((r,i)=>{ if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i]=0; });
+      if(!state.items) state.items = {};
+      ALL_ITEMS.forEach(id => { if(!(id in state.items)) state.items[id] = 0; });
+      REGIONS.forEach((_, i) => { if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i] = 0; });
     }
   }catch(e){}
+  clampRegionUnlocks();
   viewingRegion = state.regionUnlocked;
   renderMap();
 }
 async function saveState(){
-  try{ await window.storage.set('wordwild-save', JSON.stringify(state), false); }
+  try{ await window.storage.set('numberwild-save', JSON.stringify(state), false); }
   catch(e){ console.error('save failed', e); }
+}
+
+/* ---------------- SPEECH / LABELS ---------------- */
+const ONES_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine'];
+const TEENS_WORDS = ['ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS_WORDS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function numberWords(n){
+  n = Number(n);
+  if(n < 10) return ONES_WORDS[n];
+  if(n < 20) return TEENS_WORDS[n - 10];
+  if(n === 100) return 'one hundred';
+  const t = Math.floor(n / 10), o = n % 10;
+  return o ? TENS_WORDS[t] + ' ' + ONES_WORDS[o] : TENS_WORDS[t];
+}
+function itemLabel(id){
+  if(id.startsWith('ones:')) return id.slice(5) + ' ones';
+  if(id.startsWith('tens:')) return id.slice(5) + ' tens';
+  if(id.includes('+')) return id.replace('+', ' + ');
+  if(id.includes('-')) return id.replace('-', ' − ');
+  return id;
 }
 
 /* ---------------- CREATURE ART ---------------- */
 function hashWord(w){ let h=0; for(let i=0;i<w.length;i++){ h=(h*31+w.charCodeAt(i))>>>0; } return h; }
 const PALETTES = [
-  ["#ff9d7a","#ff7a5c"], ["#7bd3ff","#4fb4e8"], ["#c6a4ff","#9a6bff"],
-  ["#ffd166","#f4a300"], ["#8ce99a","#4caf6b"], ["#ff9ec7","#ff5fa2"],
+  ["#e86a3a","#c65b42"], ["#2a9d8f","#1d7a6f"], ["#f4c14d","#d4a02a"],
+  ["#7ec8d4","#4fa3b0"], ["#c6a4ff","#9a6bff"], ["#8ce99a","#4caf6b"],
 ];
-function creatureSVG(word, level){
-  const h = hashWord(word);
+function creatureSVG(id, level){
+  const h = hashWord(id);
   const pal = PALETTES[h % PALETTES.length];
   const eyeStyle = h % 3;
-  const earStyle = (h>>3) % 3;
-  const bodyR = 46;
+  const earStyle = (h >> 3) % 3;
   const spikes = level >= 4;
   const wings = level >= 3;
   const crown = level >= MAX_LEVEL;
   let ears = '';
-  if(earStyle===0) ears = `<circle cx="34" cy="34" r="14" fill="${pal[0]}"/><circle cx="86" cy="34" r="14" fill="${pal[0]}"/>`;
-  if(earStyle===1) ears = `<polygon points="30,40 24,10 46,32" fill="${pal[0]}"/><polygon points="90,40 96,10 74,32" fill="${pal[0]}"/>`;
-  if(earStyle===2) ears = `<ellipse cx="30" cy="36" rx="10" ry="18" fill="${pal[0]}"/><ellipse cx="90" cy="36" rx="10" ry="18" fill="${pal[0]}"/>`;
+  if(earStyle===0) ears = `<rect x="18" y="22" width="18" height="18" rx="3" fill="${pal[0]}"/><rect x="84" y="22" width="18" height="18" rx="3" fill="${pal[0]}"/>`;
+  if(earStyle===1) ears = `<polygon points="28,40 20,12 44,30" fill="${pal[0]}"/><polygon points="92,40 100,12 76,30" fill="${pal[0]}"/>`;
+  if(earStyle===2) ears = `<rect x="22" y="16" width="14" height="24" rx="2" fill="${pal[0]}"/><rect x="84" y="16" width="14" height="24" rx="2" fill="${pal[0]}"/>`;
   let eyes = '';
-  if(eyeStyle===0) eyes = `<circle cx="48" cy="66" r="7" fill="#20362c"/><circle cx="72" cy="66" r="7" fill="#20362c"/><circle cx="50" cy="63" r="2" fill="#fff"/><circle cx="74" cy="63" r="2" fill="#fff"/>`;
-  if(eyeStyle===1) eyes = `<ellipse cx="48" cy="66" rx="5" ry="8" fill="#20362c"/><ellipse cx="72" cy="66" rx="5" ry="8" fill="#20362c"/>`;
-  if(eyeStyle===2) eyes = `<path d="M42,64 Q48,58 54,64" stroke="#20362c" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M66,64 Q72,58 78,64" stroke="#20362c" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+  if(eyeStyle===0) eyes = `<rect x="42" y="60" width="10" height="10" rx="2" fill="#2a2418"/><rect x="68" y="60" width="10" height="10" rx="2" fill="#2a2418"/><rect x="44" y="62" width="3" height="3" fill="#fff"/><rect x="70" y="62" width="3" height="3" fill="#fff"/>`;
+  if(eyeStyle===1) eyes = `<rect x="44" y="58" width="8" height="14" rx="2" fill="#2a2418"/><rect x="68" y="58" width="8" height="14" rx="2" fill="#2a2418"/>`;
+  if(eyeStyle===2) eyes = `<path d="M42,64 Q48,58 54,64" stroke="#2a2418" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M66,64 Q72,58 78,64" stroke="#2a2418" stroke-width="4" fill="none" stroke-linecap="round"/>`;
   let extras = '';
-  if(wings) extras += `<ellipse cx="18" cy="70" rx="14" ry="24" fill="${pal[1]}" opacity="0.85" transform="rotate(-20 18 70)"/><ellipse cx="102" cy="70" rx="14" ry="24" fill="${pal[1]}" opacity="0.85" transform="rotate(20 102 70)"/>`;
-  if(spikes) extras += `<polygon points="60,14 66,28 54,28" fill="${pal[1]}"/>`;
-  if(crown) extras += `<polygon points="45,20 50,8 55,18 60,6 65,18 70,8 75,20" fill="#ffd166" stroke="#c99a2c" stroke-width="1.5"/>`;
+  if(wings) extras += `<rect x="6" y="52" width="16" height="28" rx="3" fill="${pal[1]}" opacity="0.85" transform="rotate(-18 14 66)"/><rect x="98" y="52" width="16" height="28" rx="3" fill="${pal[1]}" opacity="0.85" transform="rotate(18 106 66)"/>`;
+  if(spikes) extras += `<polygon points="60,18 66,32 54,32" fill="${pal[1]}"/>`;
+  if(crown) extras += `<polygon points="45,22 50,10 55,20 60,8 65,20 70,10 75,22" fill="#f4c14d" stroke="#c99a2c" stroke-width="1.5"/>`;
   return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
     ${ears}
-    <circle cx="60" cy="70" r="${bodyR}" fill="${pal[0]}" stroke="${pal[1]}" stroke-width="4"/>
+    <rect x="24" y="40" width="72" height="64" rx="10" fill="${pal[0]}" stroke="${pal[1]}" stroke-width="4"/>
+    <rect x="32" y="98" width="16" height="10" rx="2" fill="${pal[1]}"/>
+    <rect x="72" y="98" width="16" height="10" rx="2" fill="${pal[1]}"/>
     ${extras}
     ${eyes}
-    <path d="M52,86 Q60,94 68,86" stroke="#20362c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <circle cx="60" cy="70" r="${bodyR}" fill="none" stroke="#ffffff55" stroke-width="3"/>
+    <path d="M50,84 H70" stroke="#2a2418" stroke-width="3.5" stroke-linecap="round"/>
+    <rect x="24" y="40" width="72" height="64" rx="10" fill="none" stroke="#ffffff55" stroke-width="3"/>
   </svg>`;
 }
 
+/* ---------------- QUESTIONS ---------------- */
+function makeQuestion(id){
+  const type = ITEM_META[id].type;
+  const gymPrompt = current.mode === 'master'
+    ? `Master trial! Get ${MASTER_STREAK} correct in a row!`
+    : current.mode === 'boss'
+      ? `Gym Battle! Get ${GYM_STREAK} in a row to beat the gym!`
+      : null;
+  if(type === 'identify'){
+    return {
+      id, type,
+      prompt: gymPrompt || 'Which number is this Wildling?',
+      speakText: numberWords(id),
+      answer: id,
+      display: null,
+    };
+  }
+  if(type === 'add'){
+    const [a, b] = id.split('+').map(Number);
+    return {
+      id, type,
+      prompt: gymPrompt || 'What is the sum?',
+      speakText: numberWords(a) + ' plus ' + numberWords(b),
+      answer: String(a + b),
+      display: a + ' + ' + b,
+    };
+  }
+  if(type === 'sub'){
+    const [a, b] = id.split('-').map(Number);
+    return {
+      id, type,
+      prompt: gymPrompt || 'What is the difference?',
+      speakText: numberWords(a) + ' minus ' + numberWords(b),
+      answer: String(a - b),
+      display: a + ' − ' + b,
+    };
+  }
+  if(type === 'ones'){
+    const n = id.slice(5);
+    return {
+      id, type,
+      prompt: gymPrompt || 'Which digit is in the ones place?',
+      speakText: numberWords(n),
+      answer: String(Number(n) % 10),
+      display: n,
+    };
+  }
+  if(type === 'tens'){
+    const n = Number(id.slice(5));
+    return {
+      id, type,
+      prompt: gymPrompt || 'Which digit is in the tens place?',
+      speakText: numberWords(n),
+      answer: String(Math.floor(n / 10) % 10),
+      display: String(n),
+    };
+  }
+}
+
+function uniquePush(arr, val){
+  const s = String(val);
+  if(arr.indexOf(s) === -1) arr.push(s);
+}
+function digitReverse(n){
+  n = Number(n);
+  if(n < 10) return null;
+  return String(Number(String(n).split('').reverse().join('')));
+}
+function identifyDistractors(n){
+  n = Number(n);
+  const out = [];
+  [n+1, n-1, n+2, n-2, n+10, n-10].forEach(x => {
+    if(x >= 0 && x <= 100 && x !== n) uniquePush(out, x);
+  });
+  const rev = digitReverse(n);
+  if(rev !== null && Number(rev) !== n) uniquePush(out, rev);
+  return out;
+}
+function mathDistractors(answer, max){
+  const a = Number(answer);
+  const out = [];
+  [a+1, a-1, a+2, a-2, a+10, a-10].forEach(x => {
+    if(x >= 0 && x <= max && x !== a) uniquePush(out, x);
+  });
+  const rev = digitReverse(a);
+  if(rev !== null && Number(rev) !== a && Number(rev) <= max) uniquePush(out, rev);
+  return out;
+}
+function digitDistractors(correct, alsoAvoid){
+  const out = [];
+  const avoid = new Set([String(correct), ...((alsoAvoid||[]).map(String))]);
+  const nearby = [Number(correct)+1, Number(correct)-1, Number(correct)+2];
+  nearby.forEach(x => { if(x >= 0 && x <= 9 && !avoid.has(String(x))) uniquePush(out, x); });
+  (alsoAvoid||[]).forEach(x => {
+    const s = String(x);
+    if(s !== String(correct) && Number(s) >= 0 && Number(s) <= 9) uniquePush(out, s);
+  });
+  const rest = [0,1,2,3,4,5,6,7,8,9].map(String).filter(d => !avoid.has(d) && out.indexOf(d)===-1);
+  shuffle(rest);
+  rest.forEach(d => uniquePush(out, d));
+  return out;
+}
+function fillDistractors(partial, correct, extras){
+  const out = partial.filter(x => x !== correct);
+  const more = (extras || []).filter(x => x !== correct && out.indexOf(x)===-1);
+  shuffle(more);
+  for(let i=0; i<more.length && out.length<3; i++) out.push(more[i]);
+  return out.slice(0, 3);
+}
+function distractorsFor(q){
+  if(q.type === 'identify'){
+    const near = identifyDistractors(q.answer);
+    const pool = regionAllItems(REGIONS[current.regionIndex]).filter(id => ITEM_META[id].type === 'identify' && id !== q.answer);
+    return fillDistractors(near, q.answer, pool.concat(rangeItems(0,100)));
+  }
+  if(q.type === 'add'){
+    return fillDistractors(mathDistractors(q.answer, 18), q.answer, rangeItems(0,18));
+  }
+  if(q.type === 'sub'){
+    return fillDistractors(mathDistractors(q.answer, 9), q.answer, rangeItems(0,9));
+  }
+  if(q.type === 'ones'){
+    const n = Number(q.id.slice(5));
+    const tens = Math.floor(n / 10) % 10;
+    return fillDistractors(digitDistractors(q.answer, [tens]), q.answer);
+  }
+  if(q.type === 'tens'){
+    const n = Number(q.id.slice(5));
+    const ones = n % 10;
+    return fillDistractors(digitDistractors(q.answer, [ones]), q.answer);
+  }
+  return [];
+}
+
 /* ---------------- MAP RENDER ---------------- */
+function zoneUnit(z){
+  return z.type === 'identify' ? 'numbers' : 'facts';
+}
 function zoneStatus(ri, zi){
   const z = REGIONS[ri].zones[zi];
-  const maxedCount = z.words.filter(w=>state.words[w]>=MAX_LEVEL).length;
-  const catches = z.words.reduce((s,w)=>s+Math.min(state.words[w],MAX_LEVEL),0);
-  const bossReady = catches >= CATCHES_PER_BOSS;
-  const cleared = !!state.bossCleared[ri+'-'+zi];
+  const maxedCount = z.items.filter(id => state.items[id] >= MAX_LEVEL).length;
+  const catches = z.items.reduce((s, id) => s + Math.min(state.items[id], MAX_LEVEL), 0);
+  const bossReady = catches >= (z.catchesForBoss || 8);
+  const cleared = !!state.bossCleared[ri + '-' + zi];
   return {catches, maxedCount, bossReady, cleared};
 }
 function regionAllBossesCleared(ri){
-  return REGIONS[ri].zones.every((_,zi)=>state.bossCleared[ri+'-'+zi]);
+  return REGIONS[ri].zones.every((_, zi) => state.bossCleared[ri + '-' + zi]);
+}
+function highestUnlockedRegion(){
+  let max = 0;
+  for(let i = 0; i < REGIONS.length - 1; i++){
+    if(state.masterCleared[i]) max = i + 1;
+    else break;
+  }
+  return max;
+}
+function clampRegionUnlocks(){
+  const max = highestUnlockedRegion();
+  if(state.regionUnlocked !== max) state.regionUnlocked = max;
+  if(viewingRegion > state.regionUnlocked) viewingRegion = state.regionUnlocked;
+}
+function regionPlayable(ri){
+  return Number.isInteger(ri) && ri >= 0 && ri <= state.regionUnlocked && ri < REGIONS.length;
 }
 function shiftRegion(dir){
   const target = viewingRegion + dir;
-  if(target < 0 || target > state.regionUnlocked) return;
-  if(target >= REGIONS.length) return;
+  if(target < 0 || !regionPlayable(target)) return;
   viewingRegion = target;
   renderMap();
 }
 function renderMap(){
   const r = REGIONS[viewingRegion];
+  const nextLocked = viewingRegion === state.regionUnlocked && viewingRegion < REGIONS.length - 1;
   document.getElementById('regionName').textContent = r.name;
   document.getElementById('regionSub').textContent = r.subtitle;
   document.getElementById('regPrev').disabled = viewingRegion <= 0;
-  document.getElementById('regNext').disabled = viewingRegion >= state.regionUnlocked || viewingRegion >= REGIONS.length-1;
+  const nextBtn = document.getElementById('regNext');
+  nextBtn.disabled = viewingRegion >= state.regionUnlocked || viewingRegion >= REGIONS.length-1;
+  nextBtn.title = nextLocked ? ('Beat ' + r.masterTitle + ' to unlock ' + REGIONS[viewingRegion + 1].name) : '';
 
   const wrap = document.getElementById('zonewrap');
   wrap.innerHTML = '';
   const unlockedZoneIdx = state.zoneUnlockedInRegion[viewingRegion] || 0;
 
-  r.zones.forEach((z,i)=>{
+  r.zones.forEach((z, i) => {
     const unlocked = i <= unlockedZoneIdx;
     const st = zoneStatus(viewingRegion, i);
     const div = document.createElement('div');
-    div.className = 'zone' + (unlocked? '' : ' locked');
-    let sub = `${st.maxedCount}/${z.words.length} words mastered`;
+    div.className = 'zone' + (unlocked ? '' : ' locked');
+    let sub = `${st.maxedCount}/${z.items.length} ${zoneUnit(z)} mastered`;
     if(unlocked && !st.cleared && st.bossReady) sub = "Gym Leader is ready!";
     div.innerHTML = `
-      <div class="badge">${unlocked? z.icon : '🔒'}</div>
+      <div class="badge">${unlocked ? z.icon : '🔒'}</div>
       <div class="info"><h3>${z.name}</h3><p>${sub}</p></div>
-      ${unlocked ? `<button class="go" onclick="enterZone(${viewingRegion},${i})">${st.cleared? 'Visit' : (st.bossReady? 'Gym!' : 'Play')}</button>` : `<div class="lock-icon">🔒</div>`}
+      ${unlocked ? `<button class="go" onclick="enterZone(${viewingRegion},${i})">${st.cleared ? 'Visit' : (st.bossReady ? 'Gym!' : 'Play')}</button>` : `<div class="lock-icon">🔒</div>`}
     `;
     wrap.appendChild(div);
-    const c = document.createElement('div'); c.className='connector'; wrap.appendChild(c);
+    const c = document.createElement('div'); c.className = 'connector'; wrap.appendChild(c);
   });
 
-  // Master tile
   const allBossesCleared = regionAllBossesCleared(viewingRegion);
   const masterCleared = !!state.masterCleared[viewingRegion];
   const mdiv = document.createElement('div');
-  mdiv.className = 'zone master' + (allBossesCleared? '' : ' locked');
+  mdiv.className = 'zone master' + (allBossesCleared ? '' : ' locked');
+  const nextName = viewingRegion < REGIONS.length - 1 ? REGIONS[viewingRegion + 1].name : '';
+  const masterHint = masterCleared
+    ? 'Region mastered!'
+    : (allBossesCleared
+      ? (nextName ? 'All ' + r.zones.length + ' gyms cleared — beat the Master to unlock ' + nextName + '!' : 'All ' + r.zones.length + ' gyms cleared — face the Master!')
+      : 'Clear every gym in ' + r.name + ' to unlock');
   mdiv.innerHTML = `
-    <div class="badge">${allBossesCleared? '👑' : '🔒'}</div>
-    <div class="info"><h3>${r.masterTitle}</h3><p>${masterCleared? 'Region mastered!' : (allBossesCleared? 'All ' + r.zones.length + ' gyms cleared — face the Master!' : 'Clear every gym in ' + r.name + ' to unlock')}</p></div>
-    ${allBossesCleared ? `<button class="go" onclick="enterMaster(${viewingRegion})">${masterCleared? 'Replay' : 'Challenge'}</button>` : `<div class="lock-icon">🔒</div>`}
+    <div class="badge">${allBossesCleared ? '👑' : '🔒'}</div>
+    <div class="info"><h3>${r.masterTitle}</h3><p>${masterHint}</p></div>
+    ${allBossesCleared ? `<button class="go" onclick="enterMaster(${viewingRegion})">${masterCleared ? 'Replay' : 'Challenge'}</button>` : `<div class="lock-icon">🔒</div>`}
   `;
   wrap.appendChild(mdiv);
+
+  if(nextLocked){
+    const next = REGIONS[viewingRegion + 1];
+    const c2 = document.createElement('div'); c2.className = 'connector'; wrap.appendChild(c2);
+    const ndiv = document.createElement('div');
+    ndiv.className = 'zone next-region locked';
+    ndiv.innerHTML = `
+      <div class="badge">🔒</div>
+      <div class="info"><h3>${next.name}</h3><p>Beat ${r.masterTitle} to unlock</p></div>
+      <div class="lock-icon">🔒</div>
+    `;
+    wrap.appendChild(ndiv);
+  }
   updateDexButton();
 }
 function regionDexStats(ri){
-  const words = regionAllWords(REGIONS[ri]);
-  const collected = words.filter(w => (state.words[w]||0) > 0).length;
-  const stars = words.reduce((s,w)=>s+Math.min(state.words[w]||0, MAX_LEVEL), 0);
-  return { collected, total: words.length, stars, maxStars: words.length * MAX_LEVEL };
+  const items = regionAllItems(REGIONS[ri]);
+  const collected = items.filter(id => (state.items[id] || 0) > 0).length;
+  const stars = items.reduce((s, id) => s + Math.min(state.items[id] || 0, MAX_LEVEL), 0);
+  return { collected, total: items.length, stars, maxStars: items.length * MAX_LEVEL };
 }
 function updateDexButton(){
-  const n = ALL_WORDS.filter(w => (state.words[w]||0) > 0).length;
+  const n = ALL_ITEMS.filter(id => (state.items[id] || 0) > 0).length;
   const badge = document.getElementById('dexCount');
   if(!badge) return;
   badge.textContent = n;
@@ -422,7 +651,7 @@ function updateDexButton(){
 
 /* ---------------- NAVIGATION ---------------- */
 function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 function hideGymAnnounce(){
@@ -529,6 +758,8 @@ function toMap(){
 function openDex(){ renderDex(); showScreen('dexScreen'); }
 
 function enterZone(ri, zi){
+  if(!regionPlayable(ri)) return;
+  if(zi > (state.zoneUnlockedInRegion[ri] || 0)) return;
   current.regionIndex = ri; current.zoneIndex = zi;
   const st = zoneStatus(ri, zi);
   current.mode = (st.bossReady && !st.cleared) ? 'boss' : 'zone';
@@ -538,46 +769,54 @@ function enterZone(ri, zi){
   setBattleChrome();
   showScreen('battleScreen');
   if(current.mode === 'boss'){
-    nextWord({silent:true});
-    announceGymStart(() => speakWord());
+    nextQuestion({silent:true});
+    announceGymStart(() => speakQuestion());
   } else {
-    nextWord();
+    nextQuestion();
   }
 }
 function enterMaster(ri){
+  if(!regionPlayable(ri) || !regionAllBossesCleared(ri)) return;
   current.regionIndex = ri; current.zoneIndex = null;
   current.mode = 'master'; current.streak = 0;
   document.getElementById('zoneLabel').textContent = REGIONS[ri].masterTitle;
   setBattleChrome();
   showScreen('battleScreen');
-  nextWord();
+  nextQuestion();
 }
 
 /* ---------------- BATTLE LOGIC ---------------- */
-function currentWordPool(){
-  if(current.mode === 'master') return regionAllWords(REGIONS[current.regionIndex]);
-  return REGIONS[current.regionIndex].zones[current.zoneIndex].words;
+function currentItemPool(){
+  if(current.mode === 'master') return regionAllItems(REGIONS[current.regionIndex]);
+  return REGIONS[current.regionIndex].zones[current.zoneIndex].items;
 }
-function pickWord(pool, avoid){
-  let p = pool.filter(w=>state.words[w] < MAX_LEVEL);
-  if(p.length===0) p = pool.slice();
-  if(avoid && p.length>1) p = p.filter(w=>w!==avoid);
-  return p[Math.floor(Math.random()*p.length)];
+function pickItem(pool, avoid){
+  let p = pool.filter(id => state.items[id] < MAX_LEVEL);
+  if(p.length === 0) p = pool.slice();
+  if(avoid && p.length > 1) p = p.filter(id => id !== avoid);
+  return p[Math.floor(Math.random() * p.length)];
 }
-function nextWord(opts){
-  const pool = currentWordPool();
-  const word = pickWord(pool, current.word);
-  current.word = word;
-  current.voice = null;
-  const level = Math.min(state.words[word], MAX_LEVEL);
-  document.getElementById('creatureBox').innerHTML = creatureSVG(word, level);
-  document.getElementById('promptText').textContent =
-    current.mode === 'master' ? `Master trial! Get ${MASTER_STREAK} correct in a row!` :
-    current.mode === 'boss' ? `Gym Battle! Get ${GYM_STREAK} in a row to beat the gym!` :
-    `Which word is this Wildling?`;
+function nextQuestion(opts){
+  const pool = currentItemPool();
+  const item = pickItem(pool, current.item);
+  current.item = item;
+  const q = makeQuestion(item);
+  current.q = q;
+  const level = Math.min(state.items[item], MAX_LEVEL);
+  document.getElementById('creatureBox').innerHTML = creatureSVG(item, level);
+  document.getElementById('promptText').textContent = q.prompt;
+  const disp = document.getElementById('questionDisplay');
+  if(q.display){
+    disp.textContent = q.display;
+    disp.classList.add('show');
+  } else {
+    disp.textContent = '';
+    disp.classList.remove('show');
+  }
   renderProgress();
-  buildChoices(word, pool);
-  if(!opts || !opts.silent) setTimeout(speakWord, 350);
+  buildChoices(q);
+  current.voice = null;
+  if(!opts || !opts.silent) setTimeout(speakQuestion, 350);
 }
 function renderProgress(){
   const bar = document.getElementById('battleProgress');
@@ -585,42 +824,40 @@ function renderProgress(){
   if(current.mode === 'boss' || current.mode === 'master'){
     const need = current.mode === 'master' ? MASTER_STREAK : GYM_STREAK;
     for(let k=0;k<need;k++){
-      const s=document.createElement('span');
-      if(k<current.streak) s.classList.add('filled');
+      const s = document.createElement('span');
+      if(k < current.streak) s.classList.add('filled');
       bar.appendChild(s);
     }
   } else {
-    const lvl = Math.min(state.words[current.word], MAX_LEVEL);
+    const lvl = Math.min(state.items[current.item], MAX_LEVEL);
     for(let k=0;k<MAX_LEVEL;k++){
-      const s=document.createElement('span');
-      if(k<lvl) s.classList.add('filled');
+      const s = document.createElement('span');
+      if(k < lvl) s.classList.add('filled');
       bar.appendChild(s);
     }
   }
 }
-function buildChoices(correctWord, pool){
-  let distractSource = REGIONS[current.regionIndex] ? regionAllWords(REGIONS[current.regionIndex]) : ALL_WORDS;
-  let others = distractSource.filter(w=>w!==correctWord);
-  if(others.length < 3) others = ALL_WORDS.filter(w=>w!==correctWord);
-  shuffle(others);
-  const opts = [correctWord, ...others.slice(0,3)];
+function buildChoices(q){
+  const others = distractorsFor(q);
+  const opts = [q.answer, ...others];
   shuffle(opts);
   const box = document.getElementById('choices');
   box.innerHTML = '';
-  opts.forEach(w=>{
+  opts.forEach(ans => {
     const b = document.createElement('button');
     b.className = 'choice';
-    b.textContent = w;
-    b.onclick = ()=>handleChoice(w, correctWord, b);
+    b.textContent = ans;
+    b.dataset.answer = ans;
+    b.onclick = () => handleChoice(ans, q, b);
     box.appendChild(b);
   });
 }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
 
-function handleChoice(picked, correctWord, btnEl){
+function handleChoice(picked, q, btnEl){
   const allBtns = document.querySelectorAll('.choice');
-  allBtns.forEach(b=>b.onclick=null);
-  if(picked === correctWord){
+  allBtns.forEach(b => b.onclick = null);
+  if(picked === q.answer){
     btnEl.classList.add('correct');
     onCorrect();
   } else {
@@ -634,11 +871,14 @@ function handleChoice(picked, correctWord, btnEl){
         return;
       }
       burst("Try again!");
-      setTimeout(nextWord, 800);
+      setTimeout(nextQuestion, 800);
       return;
     }
-    setTimeout(()=>{
-      allBtns.forEach(b=>{ b.classList.remove('wrong'); b.onclick = ()=>handleChoice(b.textContent, correctWord, b); });
+    setTimeout(() => {
+      allBtns.forEach(b => {
+        b.classList.remove('wrong');
+        b.onclick = () => handleChoice(b.dataset.answer, q, b);
+      });
     }, 550);
   }
 }
@@ -649,19 +889,17 @@ function onCorrect(){
     const need = current.mode === 'master' ? MASTER_STREAK : GYM_STREAK;
     if(current.streak >= need){
       if(current.mode === 'boss'){
-        state.bossCleared[current.regionIndex+'-'+current.zoneIndex] = true;
+        state.bossCleared[current.regionIndex + '-' + current.zoneIndex] = true;
         const ri = current.regionIndex;
-        if(current.zoneIndex === (state.zoneUnlockedInRegion[ri]||0) && current.zoneIndex < REGIONS[ri].zones.length-1){
+        if(current.zoneIndex === (state.zoneUnlockedInRegion[ri] || 0) && current.zoneIndex < REGIONS[ri].zones.length-1){
           state.zoneUnlockedInRegion[ri] = current.zoneIndex + 1;
         }
         saveState();
         setTimeout(() => showGymResult(true), 500);
       } else {
         state.masterCleared[current.regionIndex] = true;
-        if(current.regionIndex === state.regionUnlocked && current.regionIndex < REGIONS.length-1){
-          state.regionUnlocked = current.regionIndex + 1;
-          viewingRegion = state.regionUnlocked;
-        }
+        clampRegionUnlocks();
+        viewingRegion = state.regionUnlocked;
         saveState();
         burst("Region Mastered! 👑");
         setTimeout(toMap, 1300);
@@ -669,22 +907,22 @@ function onCorrect(){
       return;
     }
     burst("Nice!");
-    setTimeout(nextWord, 900);
+    setTimeout(nextQuestion, 900);
   } else {
-    state.words[current.word] = Math.min(state.words[current.word]+1, MAX_LEVEL);
-    const leveled = state.words[current.word];
+    state.items[current.item] = Math.min(state.items[current.item] + 1, MAX_LEVEL);
+    const leveled = state.items[current.item];
     saveState();
-    burst(leveled>=MAX_LEVEL ? "Mastered! ✨" : "Caught! +1");
-    setTimeout(()=>{
+    burst(leveled >= MAX_LEVEL ? "Mastered! ✨" : "Caught! +1");
+    setTimeout(() => {
       const st = zoneStatus(current.regionIndex, current.zoneIndex);
       if(st.bossReady && !st.cleared && current.mode !== 'boss'){
-        current.mode = 'boss'; current.streak = 0; current.misses = 0;
+        current.mode = 'boss'; current.streak = 0;
         setBattleChrome();
-        nextWord({silent:true});
-        announceGymStart(() => speakWord());
+        nextQuestion({silent:true});
+        announceGymStart(() => speakQuestion());
         return;
       }
-      nextWord();
+      nextQuestion();
     }, 1000);
   }
 }
@@ -744,11 +982,11 @@ function speakText(text, sel){
     speechSynthesis.speak(u);
   }catch(e){}
 }
-function speakWord(){
-  if(!current.word) return;
+function speakQuestion(){
+  if(!current.q) return;
   try{
     if(!current.voice) current.voice = pickSpeakVoice();
-    speakText(current.word, current.voice);
+    speakText(current.q.speakText, current.voice);
   }catch(e){}
 }
 
@@ -758,12 +996,12 @@ function renderDex(){
   dexRegionFilter = Math.min(dexRegionFilter, state.regionUnlocked);
   const tabs = document.getElementById('dexTabs');
   tabs.innerHTML = '';
-  REGIONS.forEach((r,i)=>{
+  REGIONS.forEach((r, i) => {
     if(i > state.regionUnlocked) return;
     const b = document.createElement('button');
     b.textContent = r.name;
-    b.className = i===dexRegionFilter? 'active':'';
-    b.onclick = ()=>{ dexRegionFilter=i; renderDex(); };
+    b.className = i === dexRegionFilter ? 'active' : '';
+    b.onclick = () => { dexRegionFilter = i; renderDex(); };
     tabs.appendChild(b);
   });
   const stats = regionDexStats(dexRegionFilter);
@@ -773,13 +1011,13 @@ function renderDex(){
     `<p class="starline">★ ${stats.stars} / ${stats.maxStars} stars</p>`;
   const grid = document.getElementById('dexGrid');
   grid.innerHTML = '';
-  regionAllWords(REGIONS[dexRegionFilter]).forEach(w=>{
-    const lvl = state.words[w] || 0;
+  regionAllItems(REGIONS[dexRegionFilter]).forEach(id => {
+    const lvl = state.items[id] || 0;
     const discovered = lvl > 0;
     const div = document.createElement('div');
-    div.className = 'dexcard' + (discovered? '' : ' empty') + (lvl>=MAX_LEVEL? ' maxed' : '');
+    div.className = 'dexcard' + (discovered ? '' : ' empty') + (lvl >= MAX_LEVEL ? ' maxed' : '');
     div.innerHTML = discovered
-      ? `${creatureSVG(w, lvl)}<div class="w">${w}</div><div class="stars">${'★'.repeat(lvl)}${'☆'.repeat(MAX_LEVEL-lvl)}</div>`
+      ? `${creatureSVG(id, lvl)}<div class="w">${itemLabel(id)}</div><div class="stars">${'★'.repeat(lvl)}${'☆'.repeat(MAX_LEVEL-lvl)}</div>`
       : `<div style="font-size:40px;opacity:0.5;">❓</div><div class="w">???</div>`;
     grid.appendChild(div);
   });
