@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NumberWild</title>
+<style>
+  :root{
+    --sky-top:#7ec8d4;
+    --sky-bot:#f4d4b0;
+    --grass:#d4784a;
+    --grass-dark:#b85c32;
+    --ink:#2a2418;
+    --cream:#fff8ee;
+    --sun:#f4c14d;
+    --coral:#e86a3a;
+    --berry:#2a9d8f;
+    --card:#ffffffee;
+    --shadow: 0 6px 0 rgba(0,0,0,0.15);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;
+    font-family:-apple-system,'Baloo 2','Comic Sans MS',ui-rounded,system-ui,sans-serif;
+    background:linear-gradient(180deg,var(--sky-top),var(--sky-bot));
+    color:var(--ink);
+    touch-action:manipulation;
+  }
+  #app{position:relative;width:100%;height:100%;overflow:hidden;}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;}
+  .screen.active{display:flex;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px 6px;flex-shrink:0;}
+  .brand{display:flex;align-items:center;gap:8px;}
+  .logo{width:36px;height:36px;flex-shrink:0;filter:drop-shadow(0 3px 0 rgba(0,0,0,0.12));}
+  .logo svg{width:100%;height:100%;display:block;}
+  .wordmark{font-weight:800;font-size:22px;letter-spacing:0.2px;line-height:1;}
+  .wordmark em{font-style:normal;color:var(--coral);}
+  .dexbtn{display:flex;align-items:center;gap:8px;background:var(--card);border:none;
+    border-radius:16px;padding:8px 12px 8px 10px;font-weight:800;font-size:15px;
+    color:var(--ink);box-shadow:var(--shadow);}
+  .dexbtn:active{transform:translateY(4px);box-shadow:none;}
+  .dexgrid{width:22px;height:22px;display:grid;grid-template-columns:1fr 1fr;gap:2px;
+    background:linear-gradient(135deg,#2a9d8f,#e86a3a);border-radius:6px;padding:4px;}
+  .dexgrid i{background:#fff;border-radius:2px;display:block;}
+  .dexcount{background:var(--sun);color:#5a3d00;font-size:11px;font-weight:800;
+    min-width:20px;height:20px;border-radius:10px;display:none;align-items:center;
+    justify-content:center;padding:0 6px;}
+  .dexcount.show{display:flex;}
+
+  .regionswitch{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:4px 16px 10px;flex-shrink:0;}
+  .regionswitch button{background:var(--card);border:none;border-radius:12px;
+    width:38px;height:38px;font-size:18px;box-shadow:var(--shadow);}
+  .regionswitch button:disabled{opacity:0.3;}
+  .regionswitch button:not(:disabled):active{transform:translateY(4px);box-shadow:none;}
+  .regionname{text-align:center;min-width:180px;}
+  .regionname h2{margin:0;font-size:18px;}
+  .regionname p{margin:0;font-size:11px;color:#5a4a38;}
+
+  #mapScroll{flex:1;overflow-y:auto;padding:6px 0 40px;position:relative;}
+  .zonewrap{padding:14px 20px;display:flex;flex-direction:column;gap:22px;align-items:center;}
+  .zone{width:100%;max-width:420px;display:flex;align-items:center;gap:16px;
+    background:var(--card);border-radius:22px;padding:14px 16px;box-shadow:var(--shadow);
+    position:relative;}
+  .zone.locked{opacity:0.55;}
+  .zone.master{background:linear-gradient(120deg,#fff5da,#ffe6c0);}
+  .zone.next-region{background:linear-gradient(120deg,#e8f6f4,#dceeee);}
+  .zone .badge{width:58px;height:58px;border-radius:12px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:28px;
+    background:radial-gradient(circle at 30% 30%, #fff, var(--berry));
+    border:3px solid #1d7a6f;}
+  .zone.master .badge{background:radial-gradient(circle at 30% 30%, #fff, var(--sun));border-color:#c99a2c;}
+  .zone.locked .badge{background:#ccc;border-color:#999;}
+  .zone .info{flex:1;}
+  .zone .info h3{margin:0 0 4px;font-size:17px;}
+  .zone .info p{margin:0;font-size:12px;color:#5a4a38;}
+  .zone .go{background:var(--coral);color:#fff;border:none;border-radius:14px;
+    padding:10px 14px;font-weight:700;font-size:13px;box-shadow:0 4px 0 #c65b42;}
+  .zone.master .go{background:var(--sun);color:#5a3d00;box-shadow:0 4px 0 #c99a2c;}
+  .zone .go:active{transform:translateY(4px);box-shadow:none;}
+  .zone .lock-icon{font-size:22px;}
+  .connector{width:4px;height:22px;background:repeating-linear-gradient(180deg,var(--grass-dark) 0 6px, transparent 6px 12px);}
+
+  #battleScreen{background:linear-gradient(180deg,#8fd6df, #f6ddb8);}
+  #battleScreen.gym-mode{background:linear-gradient(180deg,#7ec8c4, #f3c27a);}
+  #battleScreen.master-mode{background:linear-gradient(180deg,#f0c36a, #f3b08a);}
+  .battle-top{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;}
+  .zone-label{font-weight:800;font-size:14px;background:var(--card);padding:6px 12px;border-radius:12px;box-shadow:var(--shadow);}
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;}
+  #creatureBox{width:170px;height:170px;display:flex;align-items:center;justify-content:center;
+    filter:drop-shadow(0 10px 6px rgba(0,0,0,0.15));}
+  #creatureBox svg{width:100%;height:100%;}
+  #questionDisplay{font-size:36px;font-weight:900;background:var(--card);
+    padding:8px 22px;border-radius:16px;box-shadow:var(--shadow);display:none;letter-spacing:1px;}
+  #questionDisplay.show{display:block;}
+  .speakbtn{background:var(--sun);border:none;border-radius:12px;width:56px;height:56px;
+    font-size:26px;box-shadow:0 4px 0 #c99a2c;margin-top:4px;}
+  .speakbtn:active{transform:translateY(4px);box-shadow:none;}
+  .prompt{font-size:13px;color:#5a4a38;margin-top:2px;text-align:center;padding:0 20px;}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 20px 26px;flex-shrink:0;}
+  .choice{background:var(--card);border:3px solid transparent;border-radius:18px;
+    padding:18px 8px;font-size:24px;font-weight:800;text-align:center;box-shadow:var(--shadow);}
+  .choice:active{transform:translateY(4px);box-shadow:none;}
+  .choice.correct{background:#c8f7c5;border-color:#4caf6b;}
+  .choice.wrong{background:#ffd2c9;border-color:var(--coral);}
+  .progressbar{display:flex;gap:4px;justify-content:center;padding:6px 0 2px;}
+  .progressbar span{width:9px;height:9px;border-radius:3px;background:#ffffff88;border:1px solid #ffffffcc;}
+  .progressbar span.filled{background:var(--sun);border-color:#c99a2c;}
+  .boss-flag{position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    background:var(--berry);color:#fff;font-size:15px;font-weight:800;padding:8px 18px;
+    border-radius:14px;letter-spacing:0.8px;box-shadow:0 4px 0 #1d7a6f;z-index:2;}
+  .boss-flag.master{background:linear-gradient(90deg,#ff9d00,#e86a3a);box-shadow:0 4px 0 #c99a2c;}
+  .gym-announce{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(32,24,16,0.62);z-index:20;padding:24px;}
+  .gym-announce.show{display:flex !important;}
+  .gym-announce-card{background:linear-gradient(165deg,#f4c14d,#e86a3a);color:#2a2418;
+    border:4px solid #fff;border-radius:28px;padding:32px 22px 28px;text-align:center;
+    max-width:360px;width:100%;opacity:1;
+    box-shadow:0 10px 0 #c65b42, 0 18px 30px rgba(0,0,0,0.28);
+    animation:gympop 0.4s ease;}
+  .gym-announce-card h2{margin:0 0 12px;font-size:30px;line-height:1.15;letter-spacing:0.2px;}
+  .gym-announce-card p{margin:0 0 22px;font-size:20px;font-weight:800;line-height:1.35;color:#3a2416;}
+  .gym-announce-tag{display:inline-block;background:#2a9d8f;color:#fff;font-size:13px;
+    font-weight:800;padding:6px 14px;border-radius:10px;margin-bottom:14px;letter-spacing:1px;}
+  .gym-go{background:#2a9d8f;color:#fff;border:none;border-radius:18px;
+    padding:16px 28px;font-size:22px;font-weight:800;box-shadow:0 5px 0 #145e56;width:100%;}
+  .gym-go:active{transform:translateY(4px);box-shadow:none;}
+  .gym-go:disabled{opacity:0.7;}
+  .gym-announce-card.win{background:linear-gradient(165deg,#8ce99a,#2a9d8f);}
+  .gym-announce-card.win .gym-announce-tag{background:#145e56;}
+  .gym-announce-card.lose{background:linear-gradient(165deg,#ffb4a2,#e86a3a);}
+  .gym-announce-card.lose .gym-announce-tag{background:#9a3a28;}
+  @keyframes gympop{0%{transform:scale(0.72) rotate(-5deg);}
+    70%{transform:scale(1.06) rotate(2deg);}
+    100%{transform:scale(1) rotate(0deg);}}
+  .caughtburst{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;font-size:36px;font-weight:900;color:var(--sun);
+    text-shadow:0 2px 0 #c99a2c;opacity:0;text-align:center;}
+  .caughtburst.show{animation:pop 1.1s ease forwards;}
+  @keyframes pop{0%{opacity:0;transform:scale(0.4) rotate(-8deg);}
+    30%{opacity:1;transform:scale(1.15) rotate(3deg);}
+    70%{opacity:1;transform:scale(1) rotate(0deg);}
+    100%{opacity:0;transform:scale(1) translateY(-30px);}}
+
+  #dexScreen{background:var(--cream);}
+  .dexhead{padding:14px 18px 6px;display:flex;justify-content:space-between;align-items:center;}
+  .dexhead h2{margin:0;font-size:20px;}
+  #dexTabs{display:flex;gap:8px;padding:0 16px 8px;flex-shrink:0;overflow-x:auto;}
+  #dexTabs button{background:var(--card);border:none;border-radius:12px;padding:8px 14px;
+    font-weight:700;font-size:12px;box-shadow:var(--shadow);white-space:nowrap;}
+  #dexTabs button.active{background:var(--sun);}
+  .dexstats{margin:0 16px 8px;padding:10px 14px;background:var(--card);border-radius:16px;
+    box-shadow:var(--shadow);flex-shrink:0;}
+  .dexstats p{margin:0;font-size:13px;line-height:1.35;}
+  .dexstats strong{font-weight:800;}
+  .dexstats .starline{margin-top:4px;font-weight:800;font-size:13px;color:#c99a2c;}
+  #dexGrid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);
+    gap:10px;padding:10px 16px 30px;}
+  .dexcard{background:var(--card);border-radius:16px;padding:8px 6px 10px;text-align:center;
+    box-shadow:var(--shadow);}
+  .dexcard.empty{opacity:0.35;}
+  .dexcard svg{width:56px;height:56px;}
+  .dexcard .w{font-size:12px;font-weight:800;margin-top:2px;}
+  .dexcard .stars{font-size:10px;color:var(--sun);letter-spacing:1px;}
+  .dexcard.maxed{border:2px solid var(--sun);}
+
+  .backbtn{background:var(--card);border:none;border-radius:14px;padding:8px 14px;
+    font-weight:700;font-size:14px;box-shadow:var(--shadow);}
+  .backbtn:active{transform:translateY(4px);box-shadow:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="screen active" id="mapScreen">
+    <div class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="32" height="32" rx="6" fill="#f4c14d"/>
+            <rect x="6" y="8" width="8" height="8" rx="2" fill="#e86a3a"/>
+            <rect x="22" y="8" width="8" height="8" rx="2" fill="#e86a3a"/>
+            <rect x="7" y="14" width="22" height="16" rx="3" fill="#e86a3a"/>
+            <rect x="12" y="19" width="3" height="3" fill="#2a2418"/>
+            <rect x="21" y="19" width="3" height="3" fill="#2a2418"/>
+            <path d="M14 25 H22" stroke="#2a2418" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="wordmark">Number<em>Wild</em></span>
+      </div>
+      <button class="dexbtn" onclick="openDex()">
+        <span class="dexgrid" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        Dex
+        <span class="dexcount" id="dexCount">0</span>
+      </button>
+    </div>
+    <div class="regionswitch">
+      <button id="regPrev" onclick="shiftRegion(-1)">◀</button>
+      <div class="regionname"><h2 id="regionName"></h2><p id="regionSub"></p></div>
+      <button id="regNext" onclick="shiftRegion(1)">▶</button>
+    </div>
+    <div id="mapScroll"><div class="zonewrap" id="zonewrap"></div></div>
+  </div>
+
+  <div class="screen" id="battleScreen">
+    <div class="battle-top">
+      <button class="backbtn" onclick="toMap()">← Map</button>
+      <div class="zone-label" id="zoneLabel"></div>
+      <div style="width:60px"></div>
+    </div>
+    <div class="stage">
+      <div class="boss-flag" id="bossFlag" style="display:none;">GYM LEADER</div>
+      <div id="creatureBox"></div>
+      <div id="questionDisplay"></div>
+      <button class="speakbtn" onclick="speakQuestion()">🔊</button>
+      <div class="prompt" id="promptText">Tap the matching number!</div>
+      <div class="progressbar" id="battleProgress"></div>
+      <div class="caughtburst" id="caughtburst"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div id="gymAnnounce" class="gym-announce" aria-live="polite">
+      <div class="gym-announce-card">
+        <div class="gym-announce-tag">GYM BATTLE</div>
+        <h2>Gym Battle Started!</h2>
+        <p>Get 3 in a row to beat the gym!</p>
+        <button class="gym-go" id="gymGoBtn" onclick="startGymBattle()">Let's Go!</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="dexScreen">
+    <div class="dexhead">
+      <h2>Wildling Dex</h2>
+      <button class="backbtn" onclick="toMap()">← Map</button>
+    </div>
+    <div id="dexTabs"></div>
+    <div class="dexstats" id="dexStats"></div>
+    <div id="dexGrid"></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------------- CONTENT HELPERS ---------------- */
+function rangeItems(lo, hi){
+  return Array.from({length: hi - lo + 1}, (_, i) => String(lo + i));
+}
+function addItems(){
+  const items = [];
+  for(let a=0;a<=9;a++) for(let b=0;b<=9;b++) items.push(a + '+' + b);
+  return items;
+}
+function subItems(){
+  const items = [];
+  for(let a=0;a<=9;a++) for(let b=0;b<=a;b++) items.push(a + '-' + b);
+  return items;
+}
+function onesItems(){
+  const items = [];
+  for(let d=0;d<=9;d++){
+    items.push('ones:' + (10 + d));
+    items.push('ones:' + (20 + d));
+  }
+  items.push('ones:7');
+  items.push('ones:100');
+  return items;
+}
+function tensItems(){
+  const items = [];
+  for(let t=1;t<=9;t++){
+    items.push('tens:' + (t * 10));
+    items.push('tens:' + (t * 10 + 7));
+  }
+  return items;
+}
+
+/* ---------------- REGION / ITEM DATA ---------------- */
+const REGIONS = [
+  {
+    name: "Pebble Plains", subtitle: "Sight Numbers", masterTitle: "Pebble Master",
+    zones: [
+      {name:"Counting Glade", icon:"🟩", type:"identify", items:rangeItems(0,10), catchesForBoss:8},
+      {name:"Teen Trail", icon:"🌿", type:"identify", items:rangeItems(11,20), catchesForBoss:8},
+      {name:"Fifty Fields", icon:"🌾", type:"identify", items:rangeItems(21,50), catchesForBoss:12},
+      {name:"Eighty Hills", icon:"⛰️", type:"identify", items:rangeItems(51,80), catchesForBoss:12},
+      {name:"Century Ridge", icon:"🏔️", type:"identify", items:rangeItems(81,100), catchesForBoss:10},
+    ]
+  },
+  {
+    name: "Operator Ridge", subtitle: "Facts & Place Value", masterTitle: "Operator Master",
+    zones: [
+      {name:"Sum Springs", icon:"➕", type:"add", items:addItems(), catchesForBoss:12},
+      {name:"Difference Dell", icon:"➖", type:"sub", items:subItems(), catchesForBoss:12},
+      {name:"Ones Outpost", icon:"1️⃣", type:"ones", items:onesItems(), catchesForBoss:8},
+      {name:"Tens Tower", icon:"🔟", type:"tens", items:tensItems(), catchesForBoss:8},
+    ]
+  },
+];
+const MAX_LEVEL = 5;
+const GYM_STREAK = 3;
+const GYM_MISSES = 3;
+const MASTER_STREAK = 5;
+
+function regionAllItems(r){ return r.zones.flatMap(z => z.items); }
+const ALL_ITEMS = REGIONS.flatMap(regionAllItems);
+
+const ITEM_META = {};
+REGIONS.forEach((r, ri) => r.zones.forEach((z, zi) => {
+  z.items.forEach(id => { ITEM_META[id] = { type: z.type, regionIndex: ri, zoneIndex: zi }; });
+}));
+
+/* ---------------- STATE ---------------- */
+let state = {
+  items: {},
+  regionUnlocked: 0,
+  zoneUnlockedInRegion: {},
+  bossCleared: {},
+  masterCleared: {},
+};
+ALL_ITEMS.forEach(id => { if(!(id in state.items)) state.items[id] = 0; });
+REGIONS.forEach((_, i) => { if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i] = 0; });
+
+let viewingRegion = 0;
+let current = { regionIndex:0, zoneIndex:0, item:null, q:null, mode:'zone', streak:0, misses:0, voice:null };
+
+/* ---------------- STORAGE ---------------- */
+async function loadState(){
+  try{
+    const res = await window.storage.get('numberwild-save', false);
+    if(res && res.value){
+      const saved = JSON.parse(res.value);
+      state = Object.assign(state, saved);
+      if(!state.items) state.items = {};
+      ALL_ITEMS.forEach(id => { if(!(id in state.items)) state.items[id] = 0; });
+      REGIONS.forEach((_, i) => { if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i] = 0; });
+    }
+  }catch(e){}
+  clampRegionUnlocks();
+  viewingRegion = state.regionUnlocked;
+  renderMap();
+}
+async function saveState(){
+  try{ await window.storage.set('numberwild-save', JSON.stringify(state), false); }
+  catch(e){ console.error('save failed', e); }
+}
+
+/* ---------------- SPEECH / LABELS ---------------- */
+const ONES_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine'];
+const TEENS_WORDS = ['ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS_WORDS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function numberWords(n){
+  n = Number(n);
+  if(n < 10) return ONES_WORDS[n];
+  if(n < 20) return TEENS_WORDS[n - 10];
+  if(n === 100) return 'one hundred';
+  const t = Math.floor(n / 10), o = n % 10;
+  return o ? TENS_WORDS[t] + ' ' + ONES_WORDS[o] : TENS_WORDS[t];
+}
+function itemLabel(id){
+  if(id.startsWith('ones:')) return id.slice(5) + ' ones';
+  if(id.startsWith('tens:')) return id.slice(5) + ' tens';
+  if(id.includes('+')) return id.replace('+', ' + ');
+  if(id.includes('-')) return id.replace('-', ' − ');
+  return id;
+}
+
+/* ---------------- CREATURE ART ---------------- */
+function hashWord(w){ let h=0; for(let i=0;i<w.length;i++){ h=(h*31+w.charCodeAt(i))>>>0; } return h; }
+const PALETTES = [
+  ["#e86a3a","#c65b42"], ["#2a9d8f","#1d7a6f"], ["#f4c14d","#d4a02a"],
+  ["#7ec8d4","#4fa3b0"], ["#c6a4ff","#9a6bff"], ["#8ce99a","#4caf6b"],
+];
+function creatureSVG(id, level){
+  const h = hashWord(id);
+  const pal = PALETTES[h % PALETTES.length];
+  const eyeStyle = h % 3;
+  const earStyle = (h >> 3) % 3;
+  const spikes = level >= 4;
+  const wings = level >= 3;
+  const crown = level >= MAX_LEVEL;
+  let ears = '';
+  if(earStyle===0) ears = `<rect x="18" y="22" width="18" height="18" rx="3" fill="${pal[0]}"/><rect x="84" y="22" width="18" height="18" rx="3" fill="${pal[0]}"/>`;
+  if(earStyle===1) ears = `<polygon points="28,40 20,12 44,30" fill="${pal[0]}"/><polygon points="92,40 100,12 76,30" fill="${pal[0]}"/>`;
+  if(earStyle===2) ears = `<rect x="22" y="16" width="14" height="24" rx="2" fill="${pal[0]}"/><rect x="84" y="16" width="14" height="24" rx="2" fill="${pal[0]}"/>`;
+  let eyes = '';
+  if(eyeStyle===0) eyes = `<rect x="42" y="60" width="10" height="10" rx="2" fill="#2a2418"/><rect x="68" y="60" width="10" height="10" rx="2" fill="#2a2418"/><rect x="44" y="62" width="3" height="3" fill="#fff"/><rect x="70" y="62" width="3" height="3" fill="#fff"/>`;
+  if(eyeStyle===1) eyes = `<rect x="44" y="58" width="8" height="14" rx="2" fill="#2a2418"/><rect x="68" y="58" width="8" height="14" rx="2" fill="#2a2418"/>`;
+  if(eyeStyle===2) eyes = `<path d="M42,64 Q48,58 54,64" stroke="#2a2418" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M66,64 Q72,58 78,64" stroke="#2a2418" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+  let extras = '';
+  if(wings) extras += `<rect x="6" y="52" width="16" height="28" rx="3" fill="${pal[1]}" opacity="0.85" transform="rotate(-18 14 66)"/><rect x="98" y="52" width="16" height="28" rx="3" fill="${pal[1]}" opacity="0.85" transform="rotate(18 106 66)"/>`;
+  if(spikes) extras += `<polygon points="60,18 66,32 54,32" fill="${pal[1]}"/>`;
+  if(crown) extras += `<polygon points="45,22 50,10 55,20 60,8 65,20 70,10 75,22" fill="#f4c14d" stroke="#c99a2c" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    ${ears}
+    <rect x="24" y="40" width="72" height="64" rx="10" fill="${pal[0]}" stroke="${pal[1]}" stroke-width="4"/>
+    <rect x="32" y="98" width="16" height="10" rx="2" fill="${pal[1]}"/>
+    <rect x="72" y="98" width="16" height="10" rx="2" fill="${pal[1]}"/>
+    ${extras}
+    ${eyes}
+    <path d="M50,84 H70" stroke="#2a2418" stroke-width="3.5" stroke-linecap="round"/>
+    <rect x="24" y="40" width="72" height="64" rx="10" fill="none" stroke="#ffffff55" stroke-width="3"/>
+  </svg>`;
+}
+
+/* ---------------- QUESTIONS ---------------- */
+function makeQuestion(id){
+  const type = ITEM_META[id].type;
+  const gymPrompt = current.mode === 'master'
+    ? `Master trial! Get ${MASTER_STREAK} correct in a row!`
+    : current.mode === 'boss'
+      ? `Gym Battle! Get ${GYM_STREAK} in a row to beat the gym!`
+      : null;
+  if(type === 'identify'){
+    return {
+      id, type,
+      prompt: gymPrompt || 'Which number is this Wildling?',
+      speakText: numberWords(id),
+      answer: id,
+      display: null,
+    };
+  }
+  if(type === 'add'){
+    const [a, b] = id.split('+').map(Number);
+    return {
+      id, type,
+      prompt: gymPrompt || 'What is the sum?',
+      speakText: numberWords(a) + ' plus ' + numberWords(b),
+      answer: String(a + b),
+      display: a + ' + ' + b,
+    };
+  }
+  if(type === 'sub'){
+    const [a, b] = id.split('-').map(Number);
+    return {
+      id, type,
+      prompt: gymPrompt || 'What is the difference?',
+      speakText: numberWords(a) + ' minus ' + numberWords(b),
+      answer: String(a - b),
+      display: a + ' − ' + b,
+    };
+  }
+  if(type === 'ones'){
+    const n = id.slice(5);
+    return {
+      id, type,
+      prompt: gymPrompt || 'Which digit is in the ones place?',
+      speakText: numberWords(n),
+      answer: String(Number(n) % 10),
+      display: n,
+    };
+  }
+  if(type === 'tens'){
+    const n = Number(id.slice(5));
+    return {
+      id, type,
+      prompt: gymPrompt || 'Which digit is in the tens place?',
+      speakText: numberWords(n),
+      answer: String(Math.floor(n / 10) % 10),
+      display: String(n),
+    };
+  }
+}
+
+function uniquePush(arr, val){
+  const s = String(val);
+  if(arr.indexOf(s) === -1) arr.push(s);
+}
+function digitReverse(n){
+  n = Number(n);
+  if(n < 10) return null;
+  return String(Number(String(n).split('').reverse().join('')));
+}
+function identifyDistractors(n){
+  n = Number(n);
+  const out = [];
+  [n+1, n-1, n+2, n-2, n+10, n-10].forEach(x => {
+    if(x >= 0 && x <= 100 && x !== n) uniquePush(out, x);
+  });
+  const rev = digitReverse(n);
+  if(rev !== null && Number(rev) !== n) uniquePush(out, rev);
+  return out;
+}
+function mathDistractors(answer, max){
+  const a = Number(answer);
+  const out = [];
+  [a+1, a-1, a+2, a-2, a+10, a-10].forEach(x => {
+    if(x >= 0 && x <= max && x !== a) uniquePush(out, x);
+  });
+  const rev = digitReverse(a);
+  if(rev !== null && Number(rev) !== a && Number(rev) <= max) uniquePush(out, rev);
+  return out;
+}
+function digitDistractors(correct, alsoAvoid){
+  const out = [];
+  const avoid = new Set([String(correct), ...((alsoAvoid||[]).map(String))]);
+  const nearby = [Number(correct)+1, Number(correct)-1, Number(correct)+2];
+  nearby.forEach(x => { if(x >= 0 && x <= 9 && !avoid.has(String(x))) uniquePush(out, x); });
+  (alsoAvoid||[]).forEach(x => {
+    const s = String(x);
+    if(s !== String(correct) && Number(s) >= 0 && Number(s) <= 9) uniquePush(out, s);
+  });
+  const rest = [0,1,2,3,4,5,6,7,8,9].map(String).filter(d => !avoid.has(d) && out.indexOf(d)===-1);
+  shuffle(rest);
+  rest.forEach(d => uniquePush(out, d));
+  return out;
+}
+function fillDistractors(partial, correct, extras){
+  const out = partial.filter(x => x !== correct);
+  const more = (extras || []).filter(x => x !== correct && out.indexOf(x)===-1);
+  shuffle(more);
+  for(let i=0; i<more.length && out.length<3; i++) out.push(more[i]);
+  return out.slice(0, 3);
+}
+function distractorsFor(q){
+  if(q.type === 'identify'){
+    const near = identifyDistractors(q.answer);
+    const pool = regionAllItems(REGIONS[current.regionIndex]).filter(id => ITEM_META[id].type === 'identify' && id !== q.answer);
+    return fillDistractors(near, q.answer, pool.concat(rangeItems(0,100)));
+  }
+  if(q.type === 'add'){
+    return fillDistractors(mathDistractors(q.answer, 18), q.answer, rangeItems(0,18));
+  }
+  if(q.type === 'sub'){
+    return fillDistractors(mathDistractors(q.answer, 9), q.answer, rangeItems(0,9));
+  }
+  if(q.type === 'ones'){
+    const n = Number(q.id.slice(5));
+    const tens = Math.floor(n / 10) % 10;
+    return fillDistractors(digitDistractors(q.answer, [tens]), q.answer);
+  }
+  if(q.type === 'tens'){
+    const n = Number(q.id.slice(5));
+    const ones = n % 10;
+    return fillDistractors(digitDistractors(q.answer, [ones]), q.answer);
+  }
+  return [];
+}
+
+/* ---------------- MAP RENDER ---------------- */
+function zoneUnit(z){
+  return z.type === 'identify' ? 'numbers' : 'facts';
+}
+function zoneStatus(ri, zi){
+  const z = REGIONS[ri].zones[zi];
+  const maxedCount = z.items.filter(id => state.items[id] >= MAX_LEVEL).length;
+  const catches = z.items.reduce((s, id) => s + Math.min(state.items[id], MAX_LEVEL), 0);
+  const bossReady = catches >= (z.catchesForBoss || 8);
+  const cleared = !!state.bossCleared[ri + '-' + zi];
+  return {catches, maxedCount, bossReady, cleared};
+}
+function regionAllBossesCleared(ri){
+  return REGIONS[ri].zones.every((_, zi) => state.bossCleared[ri + '-' + zi]);
+}
+function highestUnlockedRegion(){
+  let max = 0;
+  for(let i = 0; i < REGIONS.length - 1; i++){
+    if(state.masterCleared[i]) max = i + 1;
+    else break;
+  }
+  return max;
+}
+function clampRegionUnlocks(){
+  const max = highestUnlockedRegion();
+  if(state.regionUnlocked !== max) state.regionUnlocked = max;
+  if(viewingRegion > state.regionUnlocked) viewingRegion = state.regionUnlocked;
+}
+function regionPlayable(ri){
+  return Number.isInteger(ri) && ri >= 0 && ri <= state.regionUnlocked && ri < REGIONS.length;
+}
+function shiftRegion(dir){
+  const target = viewingRegion + dir;
+  if(target < 0 || !regionPlayable(target)) return;
+  viewingRegion = target;
+  renderMap();
+}
+function renderMap(){
+  const r = REGIONS[viewingRegion];
+  const nextLocked = viewingRegion === state.regionUnlocked && viewingRegion < REGIONS.length - 1;
+  document.getElementById('regionName').textContent = r.name;
+  document.getElementById('regionSub').textContent = r.subtitle;
+  document.getElementById('regPrev').disabled = viewingRegion <= 0;
+  const nextBtn = document.getElementById('regNext');
+  nextBtn.disabled = viewingRegion >= state.regionUnlocked || viewingRegion >= REGIONS.length-1;
+  nextBtn.title = nextLocked ? ('Beat ' + r.masterTitle + ' to unlock ' + REGIONS[viewingRegion + 1].name) : '';
+
+  const wrap = document.getElementById('zonewrap');
+  wrap.innerHTML = '';
+  const unlockedZoneIdx = state.zoneUnlockedInRegion[viewingRegion] || 0;
+
+  r.zones.forEach((z, i) => {
+    const unlocked = i <= unlockedZoneIdx;
+    const st = zoneStatus(viewingRegion, i);
+    const div = document.createElement('div');
+    div.className = 'zone' + (unlocked ? '' : ' locked');
+    let sub = `${st.maxedCount}/${z.items.length} ${zoneUnit(z)} mastered`;
+    if(unlocked && !st.cleared && st.bossReady) sub = "Gym Leader is ready!";
+    div.innerHTML = `
+      <div class="badge">${unlocked ? z.icon : '🔒'}</div>
+      <div class="info"><h3>${z.name}</h3><p>${sub}</p></div>
+      ${unlocked ? `<button class="go" onclick="enterZone(${viewingRegion},${i})">${st.cleared ? 'Visit' : (st.bossReady ? 'Gym!' : 'Play')}</button>` : `<div class="lock-icon">🔒</div>`}
+    `;
+    wrap.appendChild(div);
+    const c = document.createElement('div'); c.className = 'connector'; wrap.appendChild(c);
+  });
+
+  const allBossesCleared = regionAllBossesCleared(viewingRegion);
+  const masterCleared = !!state.masterCleared[viewingRegion];
+  const mdiv = document.createElement('div');
+  mdiv.className = 'zone master' + (allBossesCleared ? '' : ' locked');
+  const nextName = viewingRegion < REGIONS.length - 1 ? REGIONS[viewingRegion + 1].name : '';
+  const masterHint = masterCleared
+    ? 'Region mastered!'
+    : (allBossesCleared
+      ? (nextName ? 'All ' + r.zones.length + ' gyms cleared — beat the Master to unlock ' + nextName + '!' : 'All ' + r.zones.length + ' gyms cleared — face the Master!')
+      : 'Clear every gym in ' + r.name + ' to unlock');
+  mdiv.innerHTML = `
+    <div class="badge">${allBossesCleared ? '👑' : '🔒'}</div>
+    <div class="info"><h3>${r.masterTitle}</h3><p>${masterHint}</p></div>
+    ${allBossesCleared ? `<button class="go" onclick="enterMaster(${viewingRegion})">${masterCleared ? 'Replay' : 'Challenge'}</button>` : `<div class="lock-icon">🔒</div>`}
+  `;
+  wrap.appendChild(mdiv);
+
+  if(nextLocked){
+    const next = REGIONS[viewingRegion + 1];
+    const c2 = document.createElement('div'); c2.className = 'connector'; wrap.appendChild(c2);
+    const ndiv = document.createElement('div');
+    ndiv.className = 'zone next-region locked';
+    ndiv.innerHTML = `
+      <div class="badge">🔒</div>
+      <div class="info"><h3>${next.name}</h3><p>Beat ${r.masterTitle} to unlock</p></div>
+      <div class="lock-icon">🔒</div>
+    `;
+    wrap.appendChild(ndiv);
+  }
+  updateDexButton();
+}
+function regionDexStats(ri){
+  const items = regionAllItems(REGIONS[ri]);
+  const collected = items.filter(id => (state.items[id] || 0) > 0).length;
+  const stars = items.reduce((s, id) => s + Math.min(state.items[id] || 0, MAX_LEVEL), 0);
+  return { collected, total: items.length, stars, maxStars: items.length * MAX_LEVEL };
+}
+function updateDexButton(){
+  const n = ALL_ITEMS.filter(id => (state.items[id] || 0) > 0).length;
+  const badge = document.getElementById('dexCount');
+  if(!badge) return;
+  badge.textContent = n;
+  badge.classList.toggle('show', n > 0);
+}
+
+/* ---------------- NAVIGATION ---------------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function hideGymAnnounce(){
+  const el = document.getElementById('gymAnnounce');
+  if(el) el.classList.remove('show');
+  gymStartThen = null;
+}
+function resetGymCard(){
+  const el = document.getElementById('gymAnnounce');
+  if(!el) return;
+  const card = el.querySelector('.gym-announce-card');
+  card.classList.remove('win', 'lose');
+  const tag = el.querySelector('.gym-announce-tag');
+  if(tag) tag.textContent = 'GYM BATTLE';
+  const title = el.querySelector('h2');
+  if(title) title.textContent = 'Gym Battle Started!';
+  const line = el.querySelector('p');
+  if(line) line.textContent = `Get ${GYM_STREAK} in a row to beat the gym!`;
+  const btn = document.getElementById('gymGoBtn');
+  if(btn){
+    btn.textContent = "Let's Go!";
+    btn.disabled = false;
+    btn.onclick = startGymBattle;
+  }
+}
+function setBattleChrome(){
+  const flag = document.getElementById('bossFlag');
+  const battle = document.getElementById('battleScreen');
+  battle.classList.toggle('gym-mode', current.mode === 'boss');
+  battle.classList.toggle('master-mode', current.mode === 'master');
+  if(current.mode === 'boss'){
+    flag.className = 'boss-flag';
+    flag.style.display = 'flex';
+    flag.textContent = 'GYM BATTLE';
+  } else if(current.mode === 'master'){
+    flag.className = 'boss-flag master';
+    flag.style.display = 'flex';
+    flag.textContent = 'REGION MASTER';
+  } else {
+    flag.style.display = 'none';
+  }
+}
+let gymStartThen = null;
+function announceGymStart(then){
+  gymStartThen = then || null;
+  current.streak = 0;
+  current.misses = 0;
+  resetGymCard();
+  const el = document.getElementById('gymAnnounce');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  try{
+    if(!current.voice) current.voice = pickSpeakVoice();
+    speakText('Gym battle started! Get ' + GYM_STREAK + ' in a row to beat the gym!', current.voice);
+  }catch(e){}
+}
+function startGymBattle(){
+  const btn = document.getElementById('gymGoBtn');
+  if(btn) btn.disabled = true;
+  const next = gymStartThen;
+  hideGymAnnounce();
+  resetGymCard();
+  stopSpeak();
+  if(next) next();
+}
+function showGymResult(won){
+  const el = document.getElementById('gymAnnounce');
+  const card = el.querySelector('.gym-announce-card');
+  card.classList.remove('win', 'lose');
+  card.classList.add(won ? 'win' : 'lose');
+  const tag = el.querySelector('.gym-announce-tag');
+  if(tag) tag.textContent = won ? 'GYM CLEARED' : 'GYM OVER';
+  const title = el.querySelector('h2');
+  if(title) title.textContent = won ? 'Congrats! You beat the gym!' : 'Oh no! Better luck next time!';
+  const line = el.querySelector('p');
+  if(line) line.textContent = won ? 'The next path is open.' : 'Practice a bit more and try again!';
+  const btn = document.getElementById('gymGoBtn');
+  if(btn){
+    btn.textContent = 'OK';
+    btn.disabled = false;
+    btn.onclick = finishGymResult;
+  }
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  try{
+    const voice = current.voice || pickSpeakVoice();
+    speakText(won ? 'Congrats! You beat the gym!' : 'Oh no! Better luck next time!', voice);
+  }catch(e){}
+}
+function finishGymResult(){
+  const btn = document.getElementById('gymGoBtn');
+  if(btn) btn.disabled = true;
+  hideGymAnnounce();
+  resetGymCard();
+  stopSpeak();
+  toMap();
+}
+function toMap(){
+  hideGymAnnounce();
+  resetGymCard();
+  stopSpeak();
+  document.getElementById('battleScreen').classList.remove('gym-mode','master-mode');
+  renderMap();
+  showScreen('mapScreen');
+}
+function openDex(){ renderDex(); showScreen('dexScreen'); }
+
+function enterZone(ri, zi){
+  if(!regionPlayable(ri)) return;
+  if(zi > (state.zoneUnlockedInRegion[ri] || 0)) return;
+  current.regionIndex = ri; current.zoneIndex = zi;
+  const st = zoneStatus(ri, zi);
+  current.mode = (st.bossReady && !st.cleared) ? 'boss' : 'zone';
+  current.streak = 0;
+  current.misses = 0;
+  document.getElementById('zoneLabel').textContent = REGIONS[ri].zones[zi].name;
+  setBattleChrome();
+  showScreen('battleScreen');
+  if(current.mode === 'boss'){
+    nextQuestion({silent:true});
+    announceGymStart(() => speakQuestion());
+  } else {
+    nextQuestion();
+  }
+}
+function enterMaster(ri){
+  if(!regionPlayable(ri) || !regionAllBossesCleared(ri)) return;
+  current.regionIndex = ri; current.zoneIndex = null;
+  current.mode = 'master'; current.streak = 0;
+  document.getElementById('zoneLabel').textContent = REGIONS[ri].masterTitle;
+  setBattleChrome();
+  showScreen('battleScreen');
+  nextQuestion();
+}
+
+/* ---------------- BATTLE LOGIC ---------------- */
+function currentItemPool(){
+  if(current.mode === 'master') return regionAllItems(REGIONS[current.regionIndex]);
+  return REGIONS[current.regionIndex].zones[current.zoneIndex].items;
+}
+function pickItem(pool, avoid){
+  let p = pool.filter(id => state.items[id] < MAX_LEVEL);
+  if(p.length === 0) p = pool.slice();
+  if(avoid && p.length > 1) p = p.filter(id => id !== avoid);
+  return p[Math.floor(Math.random() * p.length)];
+}
+function nextQuestion(opts){
+  const pool = currentItemPool();
+  const item = pickItem(pool, current.item);
+  current.item = item;
+  const q = makeQuestion(item);
+  current.q = q;
+  const level = Math.min(state.items[item], MAX_LEVEL);
+  document.getElementById('creatureBox').innerHTML = creatureSVG(item, level);
+  document.getElementById('promptText').textContent = q.prompt;
+  const disp = document.getElementById('questionDisplay');
+  if(q.display){
+    disp.textContent = q.display;
+    disp.classList.add('show');
+  } else {
+    disp.textContent = '';
+    disp.classList.remove('show');
+  }
+  renderProgress();
+  buildChoices(q);
+  current.voice = null;
+  if(!opts || !opts.silent) setTimeout(speakQuestion, 350);
+}
+function renderProgress(){
+  const bar = document.getElementById('battleProgress');
+  bar.innerHTML = '';
+  if(current.mode === 'boss' || current.mode === 'master'){
+    const need = current.mode === 'master' ? MASTER_STREAK : GYM_STREAK;
+    for(let k=0;k<need;k++){
+      const s = document.createElement('span');
+      if(k < current.streak) s.classList.add('filled');
+      bar.appendChild(s);
+    }
+  } else {
+    const lvl = Math.min(state.items[current.item], MAX_LEVEL);
+    for(let k=0;k<MAX_LEVEL;k++){
+      const s = document.createElement('span');
+      if(k < lvl) s.classList.add('filled');
+      bar.appendChild(s);
+    }
+  }
+}
+function buildChoices(q){
+  const others = distractorsFor(q);
+  const opts = [q.answer, ...others];
+  shuffle(opts);
+  const box = document.getElementById('choices');
+  box.innerHTML = '';
+  opts.forEach(ans => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.textContent = ans;
+    b.dataset.answer = ans;
+    b.onclick = () => handleChoice(ans, q, b);
+    box.appendChild(b);
+  });
+}
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
+
+function handleChoice(picked, q, btnEl){
+  const allBtns = document.querySelectorAll('.choice');
+  allBtns.forEach(b => b.onclick = null);
+  if(picked === q.answer){
+    btnEl.classList.add('correct');
+    onCorrect();
+  } else {
+    btnEl.classList.add('wrong');
+    if(current.mode === 'boss'){
+      current.streak = 0;
+      current.misses = (current.misses || 0) + 1;
+      renderProgress();
+      if(current.misses >= GYM_MISSES){
+        setTimeout(() => showGymResult(false), 600);
+        return;
+      }
+      burst("Try again!");
+      setTimeout(nextQuestion, 800);
+      return;
+    }
+    setTimeout(() => {
+      allBtns.forEach(b => {
+        b.classList.remove('wrong');
+        b.onclick = () => handleChoice(b.dataset.answer, q, b);
+      });
+    }, 550);
+  }
+}
+function onCorrect(){
+  if(current.mode === 'boss' || current.mode === 'master'){
+    current.streak++;
+    renderProgress();
+    const need = current.mode === 'master' ? MASTER_STREAK : GYM_STREAK;
+    if(current.streak >= need){
+      if(current.mode === 'boss'){
+        state.bossCleared[current.regionIndex + '-' + current.zoneIndex] = true;
+        const ri = current.regionIndex;
+        if(current.zoneIndex === (state.zoneUnlockedInRegion[ri] || 0) && current.zoneIndex < REGIONS[ri].zones.length-1){
+          state.zoneUnlockedInRegion[ri] = current.zoneIndex + 1;
+        }
+        saveState();
+        setTimeout(() => showGymResult(true), 500);
+      } else {
+        state.masterCleared[current.regionIndex] = true;
+        clampRegionUnlocks();
+        viewingRegion = state.regionUnlocked;
+        saveState();
+        burst("Region Mastered! 👑");
+        setTimeout(toMap, 1300);
+      }
+      return;
+    }
+    burst("Nice!");
+    setTimeout(nextQuestion, 900);
+  } else {
+    state.items[current.item] = Math.min(state.items[current.item] + 1, MAX_LEVEL);
+    const leveled = state.items[current.item];
+    saveState();
+    burst(leveled >= MAX_LEVEL ? "Mastered! ✨" : "Caught! +1");
+    setTimeout(() => {
+      const st = zoneStatus(current.regionIndex, current.zoneIndex);
+      if(st.bossReady && !st.cleared && current.mode !== 'boss'){
+        current.mode = 'boss'; current.streak = 0;
+        setBattleChrome();
+        nextQuestion({silent:true});
+        announceGymStart(() => speakQuestion());
+        return;
+      }
+      nextQuestion();
+    }, 1000);
+  }
+}
+function burst(msg){
+  const el = document.getElementById('caughtburst');
+  el.textContent = msg;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+function allVoices(){
+  try{ return speechSynthesis.getVoices() || []; }catch(e){ return []; }
+}
+function findVoice(needles){
+  const voices = allVoices();
+  for(const needle of needles){
+    const hit = voices.find(v => (v.name || '').toLowerCase().includes(needle));
+    if(hit) return hit;
+  }
+  return voices.find(v => (v.lang || '').toLowerCase().startsWith('en')) || voices[0] || null;
+}
+function davidVoice(){
+  return findVoice(['david', 'alex', 'daniel', 'fred']);
+}
+function ziraVoice(){
+  return findVoice(['zira', 'samantha', 'victoria', 'karen']);
+}
+function pickSpeakVoice(){
+  const gender = Math.random() < 0.5 ? 'female' : 'male';
+  const voice = gender === 'female' ? ziraVoice() : davidVoice();
+  return {
+    gender,
+    name: voice ? voice.name : null,
+    uri: voice ? voice.voiceURI : null,
+  };
+}
+function resolveVoice(sel){
+  if(!sel) return null;
+  if(sel.gender === 'female') return ziraVoice();
+  if(sel.gender === 'male') return davidVoice();
+  return findVoice([sel.name || '']);
+}
+if(window.speechSynthesis){
+  speechSynthesis.addEventListener('voiceschanged', () => {});
+  try{ speechSynthesis.getVoices(); }catch(e){}
+}
+function stopSpeak(){
+  try{ speechSynthesis.cancel(); }catch(e){}
+}
+function speakText(text, sel){
+  if(!text) return;
+  try{
+    stopSpeak();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.85;
+    u.pitch = 1;
+    const voice = resolveVoice(sel);
+    if(voice) u.voice = voice;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function speakQuestion(){
+  if(!current.q) return;
+  try{
+    if(!current.voice) current.voice = pickSpeakVoice();
+    speakText(current.q.speakText, current.voice);
+  }catch(e){}
+}
+
+/* ---------------- DEX ---------------- */
+let dexRegionFilter = 0;
+function renderDex(){
+  dexRegionFilter = Math.min(dexRegionFilter, state.regionUnlocked);
+  const tabs = document.getElementById('dexTabs');
+  tabs.innerHTML = '';
+  REGIONS.forEach((r, i) => {
+    if(i > state.regionUnlocked) return;
+    const b = document.createElement('button');
+    b.textContent = r.name;
+    b.className = i === dexRegionFilter ? 'active' : '';
+    b.onclick = () => { dexRegionFilter = i; renderDex(); };
+    tabs.appendChild(b);
+  });
+  const stats = regionDexStats(dexRegionFilter);
+  const r = REGIONS[dexRegionFilter];
+  document.getElementById('dexStats').innerHTML =
+    `<p>You've collected <strong>${stats.collected}/${stats.total}</strong> Wildlings in ${r.name}</p>` +
+    `<p class="starline">★ ${stats.stars} / ${stats.maxStars} stars</p>`;
+  const grid = document.getElementById('dexGrid');
+  grid.innerHTML = '';
+  regionAllItems(REGIONS[dexRegionFilter]).forEach(id => {
+    const lvl = state.items[id] || 0;
+    const discovered = lvl > 0;
+    const div = document.createElement('div');
+    div.className = 'dexcard' + (discovered ? '' : ' empty') + (lvl >= MAX_LEVEL ? ' maxed' : '');
+    div.innerHTML = discovered
+      ? `${creatureSVG(id, lvl)}<div class="w">${itemLabel(id)}</div><div class="stars">${'★'.repeat(lvl)}${'☆'.repeat(MAX_LEVEL-lvl)}</div>`
+      : `<div style="font-size:40px;opacity:0.5;">❓</div><div class="w">???</div>`;
+    grid.appendChild(div);
+  });
+}
+
+/* ---------------- INIT ---------------- */
+loadState();
+</script>
+</body>
+</html>
