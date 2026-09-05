@@ -82,6 +82,8 @@
   .connector{width:4px;height:22px;background:repeating-linear-gradient(180deg,var(--grass-dark) 0 6px, transparent 6px 12px);}
 
   #battleScreen{background:linear-gradient(180deg,#a3e2ff, #d8f6c8);}
+  #battleScreen.gym-mode{background:linear-gradient(180deg,#9ad4f5, #ffe7a8);}
+  #battleScreen.master-mode{background:linear-gradient(180deg,#f0c36a, #f3b08a);}
   .battle-top{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;}
   .zone-label{font-weight:800;font-size:14px;background:var(--card);padding:6px 12px;border-radius:12px;box-shadow:var(--shadow);}
   .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;}
@@ -102,9 +104,32 @@
   .progressbar span{width:9px;height:9px;border-radius:50%;background:#ffffff88;border:1px solid #ffffffcc;}
   .progressbar span.filled{background:var(--sun);border-color:#c99a2c;}
   .boss-flag{position:absolute;top:8px;left:50%;transform:translateX(-50%);
-    background:var(--berry);color:#fff;font-size:11px;font-weight:800;padding:4px 12px;
-    border-radius:10px;letter-spacing:0.5px;}
-  .boss-flag.master{background:linear-gradient(90deg,#ff9d00,#ff5fa2);}
+    background:var(--berry);color:#fff;font-size:15px;font-weight:800;padding:8px 18px;
+    border-radius:14px;letter-spacing:0.8px;box-shadow:0 4px 0 #5a3fd4;z-index:2;}
+  .boss-flag.master{background:linear-gradient(90deg,#ff9d00,#ff5fa2);box-shadow:0 4px 0 #c99a2c;}
+  .gym-announce{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(32,54,44,0.55);z-index:20;padding:24px;}
+  .gym-announce.show{display:flex !important;}
+  .gym-announce-card{background:linear-gradient(165deg,var(--sun),var(--coral));color:var(--ink);
+    border:4px solid #fff;border-radius:28px;padding:32px 22px 28px;text-align:center;
+    max-width:360px;width:100%;opacity:1;
+    box-shadow:0 10px 0 #c65b42, 0 18px 30px rgba(0,0,0,0.28);
+    animation:gympop 0.4s ease;}
+  .gym-announce-card h2{margin:0 0 12px;font-size:30px;line-height:1.15;letter-spacing:0.2px;}
+  .gym-announce-card p{margin:0 0 22px;font-size:20px;font-weight:800;line-height:1.35;color:#3a2416;}
+  .gym-announce-tag{display:inline-block;background:var(--berry);color:#fff;font-size:13px;
+    font-weight:800;padding:6px 14px;border-radius:10px;margin-bottom:14px;letter-spacing:1px;}
+  .gym-go{background:var(--berry);color:#fff;border:none;border-radius:18px;
+    padding:16px 28px;font-size:22px;font-weight:800;box-shadow:0 5px 0 #5a3fd4;width:100%;}
+  .gym-go:active{transform:translateY(4px);box-shadow:none;}
+  .gym-go:disabled{opacity:0.7;}
+  .gym-announce-card.win{background:linear-gradient(165deg,#8ce99a,var(--grass));}
+  .gym-announce-card.win .gym-announce-tag{background:var(--grass-dark);}
+  .gym-announce-card.lose{background:linear-gradient(165deg,#ffb4a2,var(--coral));}
+  .gym-announce-card.lose .gym-announce-tag{background:#c65b42;}
+  @keyframes gympop{0%{transform:scale(0.72) rotate(-5deg);}
+    70%{transform:scale(1.06) rotate(2deg);}
+    100%{transform:scale(1) rotate(0deg);}}
   .caughtburst{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     pointer-events:none;font-size:36px;font-weight:900;color:var(--sun);
     text-shadow:0 2px 0 #c99a2c;opacity:0;text-align:center;}
@@ -191,6 +216,14 @@
       <div class="caughtburst" id="caughtburst"></div>
     </div>
     <div class="choices" id="choices"></div>
+    <div id="gymAnnounce" class="gym-announce" aria-live="polite">
+      <div class="gym-announce-card">
+        <div class="gym-announce-tag">GYM BATTLE</div>
+        <h2>Gym Battle Started!</h2>
+        <p>Get 3 in a row to beat the gym!</p>
+        <button class="gym-go" id="gymGoBtn" onclick="startGymBattle()">Let's Go!</button>
+      </div>
+    </div>
   </div>
 
   <div class="screen" id="dexScreen">
@@ -237,6 +270,8 @@ const REGIONS = [
 ];
 const MAX_LEVEL = 5;
 const CATCHES_PER_BOSS = 8;
+const GYM_STREAK = 3;
+const GYM_MISSES = 3;
 const MASTER_STREAK = 5;
 
 function regionAllWords(r){ return r.zones.flatMap(z=>z.words); }
@@ -254,7 +289,7 @@ ALL_WORDS.forEach(w=>{ if(!(w in state.words)) state.words[w]=0; });
 REGIONS.forEach((r,i)=>{ if(!(i in state.zoneUnlockedInRegion)) state.zoneUnlockedInRegion[i]=0; });
 
 let viewingRegion = 0;
-let current = { regionIndex:0, zoneIndex:0, word:null, mode:'zone', streak:0 };
+let current = { regionIndex:0, zoneIndex:0, word:null, mode:'zone', streak:0, misses:0, voice:null };
 
 /* ---------------- STORAGE ---------------- */
 async function loadState(){
@@ -390,7 +425,107 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function toMap(){ renderMap(); showScreen('mapScreen'); }
+function hideGymAnnounce(){
+  const el = document.getElementById('gymAnnounce');
+  if(el) el.classList.remove('show');
+  gymStartThen = null;
+}
+function resetGymCard(){
+  const el = document.getElementById('gymAnnounce');
+  if(!el) return;
+  const card = el.querySelector('.gym-announce-card');
+  card.classList.remove('win', 'lose');
+  const tag = el.querySelector('.gym-announce-tag');
+  if(tag) tag.textContent = 'GYM BATTLE';
+  const title = el.querySelector('h2');
+  if(title) title.textContent = 'Gym Battle Started!';
+  const line = el.querySelector('p');
+  if(line) line.textContent = `Get ${GYM_STREAK} in a row to beat the gym!`;
+  const btn = document.getElementById('gymGoBtn');
+  if(btn){
+    btn.textContent = "Let's Go!";
+    btn.disabled = false;
+    btn.onclick = startGymBattle;
+  }
+}
+function setBattleChrome(){
+  const flag = document.getElementById('bossFlag');
+  const battle = document.getElementById('battleScreen');
+  battle.classList.toggle('gym-mode', current.mode === 'boss');
+  battle.classList.toggle('master-mode', current.mode === 'master');
+  if(current.mode === 'boss'){
+    flag.className = 'boss-flag';
+    flag.style.display = 'flex';
+    flag.textContent = 'GYM BATTLE';
+  } else if(current.mode === 'master'){
+    flag.className = 'boss-flag master';
+    flag.style.display = 'flex';
+    flag.textContent = 'REGION MASTER';
+  } else {
+    flag.style.display = 'none';
+  }
+}
+let gymStartThen = null;
+function announceGymStart(then){
+  gymStartThen = then || null;
+  current.streak = 0;
+  current.misses = 0;
+  resetGymCard();
+  const el = document.getElementById('gymAnnounce');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  try{
+    if(!current.voice) current.voice = pickSpeakVoice();
+    speakText('Gym battle started! Get ' + GYM_STREAK + ' in a row to beat the gym!', current.voice);
+  }catch(e){}
+}
+function startGymBattle(){
+  const btn = document.getElementById('gymGoBtn');
+  if(btn) btn.disabled = true;
+  const next = gymStartThen;
+  hideGymAnnounce();
+  resetGymCard();
+  stopSpeak();
+  if(next) next();
+}
+function showGymResult(won){
+  const el = document.getElementById('gymAnnounce');
+  const card = el.querySelector('.gym-announce-card');
+  card.classList.remove('win', 'lose');
+  card.classList.add(won ? 'win' : 'lose');
+  const tag = el.querySelector('.gym-announce-tag');
+  if(tag) tag.textContent = won ? 'GYM CLEARED' : 'GYM OVER';
+  const title = el.querySelector('h2');
+  if(title) title.textContent = won ? 'Congrats! You beat the gym!' : 'Oh no! Better luck next time!';
+  const line = el.querySelector('p');
+  if(line) line.textContent = won ? 'The next path is open.' : 'Practice a bit more and try again!';
+  const btn = document.getElementById('gymGoBtn');
+  if(btn){
+    btn.textContent = 'OK';
+    btn.disabled = false;
+    btn.onclick = finishGymResult;
+  }
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  try{
+    const voice = current.voice || pickSpeakVoice();
+    speakText(won ? 'Congrats! You beat the gym!' : 'Oh no! Better luck next time!', voice);
+  }catch(e){}
+}
+function finishGymResult(){
+  const btn = document.getElementById('gymGoBtn');
+  if(btn) btn.disabled = true;
+  hideGymAnnounce();
+  resetGymCard();
+  stopSpeak();
+  toMap();
+}
+function toMap(){
+  hideGymAnnounce();
+  resetGymCard();
+  stopSpeak();
+  document.getElementById('battleScreen').classList.remove('gym-mode','master-mode');
+  renderMap();
+  showScreen('mapScreen');
+}
 function openDex(){ renderDex(); showScreen('dexScreen'); }
 
 function enterZone(ri, zi){
@@ -398,18 +533,22 @@ function enterZone(ri, zi){
   const st = zoneStatus(ri, zi);
   current.mode = (st.bossReady && !st.cleared) ? 'boss' : 'zone';
   current.streak = 0;
+  current.misses = 0;
   document.getElementById('zoneLabel').textContent = REGIONS[ri].zones[zi].name;
-  const flag = document.getElementById('bossFlag');
-  flag.className = 'boss-flag'; flag.style.display = current.mode==='boss'? 'flex':'none'; flag.textContent = 'GYM LEADER';
+  setBattleChrome();
   showScreen('battleScreen');
-  nextWord();
+  if(current.mode === 'boss'){
+    nextWord({silent:true});
+    announceGymStart(() => speakWord());
+  } else {
+    nextWord();
+  }
 }
 function enterMaster(ri){
   current.regionIndex = ri; current.zoneIndex = null;
   current.mode = 'master'; current.streak = 0;
   document.getElementById('zoneLabel').textContent = REGIONS[ri].masterTitle;
-  const flag = document.getElementById('bossFlag');
-  flag.className = 'boss-flag master'; flag.style.display = 'flex'; flag.textContent = 'REGION MASTER';
+  setBattleChrome();
   showScreen('battleScreen');
   nextWord();
 }
@@ -425,25 +564,26 @@ function pickWord(pool, avoid){
   if(avoid && p.length>1) p = p.filter(w=>w!==avoid);
   return p[Math.floor(Math.random()*p.length)];
 }
-function nextWord(){
+function nextWord(opts){
   const pool = currentWordPool();
   const word = pickWord(pool, current.word);
   current.word = word;
+  current.voice = null;
   const level = Math.min(state.words[word], MAX_LEVEL);
   document.getElementById('creatureBox').innerHTML = creatureSVG(word, level);
   document.getElementById('promptText').textContent =
     current.mode === 'master' ? `Master trial! Get ${MASTER_STREAK} correct in a row!` :
-    current.mode === 'boss' ? `Gym battle! Catch "${word}" 3 times in a row!` :
+    current.mode === 'boss' ? `Gym Battle! Get ${GYM_STREAK} in a row to beat the gym!` :
     `Which word is this Wildling?`;
   renderProgress();
   buildChoices(word, pool);
-  setTimeout(speakWord, 350);
+  if(!opts || !opts.silent) setTimeout(speakWord, 350);
 }
 function renderProgress(){
   const bar = document.getElementById('battleProgress');
   bar.innerHTML = '';
   if(current.mode === 'boss' || current.mode === 'master'){
-    const need = current.mode === 'master' ? MASTER_STREAK : 3;
+    const need = current.mode === 'master' ? MASTER_STREAK : GYM_STREAK;
     for(let k=0;k<need;k++){
       const s=document.createElement('span');
       if(k<current.streak) s.classList.add('filled');
@@ -485,6 +625,18 @@ function handleChoice(picked, correctWord, btnEl){
     onCorrect();
   } else {
     btnEl.classList.add('wrong');
+    if(current.mode === 'boss'){
+      current.streak = 0;
+      current.misses = (current.misses || 0) + 1;
+      renderProgress();
+      if(current.misses >= GYM_MISSES){
+        setTimeout(() => showGymResult(false), 600);
+        return;
+      }
+      burst("Try again!");
+      setTimeout(nextWord, 800);
+      return;
+    }
     setTimeout(()=>{
       allBtns.forEach(b=>{ b.classList.remove('wrong'); b.onclick = ()=>handleChoice(b.textContent, correctWord, b); });
     }, 550);
@@ -494,7 +646,7 @@ function onCorrect(){
   if(current.mode === 'boss' || current.mode === 'master'){
     current.streak++;
     renderProgress();
-    const need = current.mode === 'master' ? MASTER_STREAK : 3;
+    const need = current.mode === 'master' ? MASTER_STREAK : GYM_STREAK;
     if(current.streak >= need){
       if(current.mode === 'boss'){
         state.bossCleared[current.regionIndex+'-'+current.zoneIndex] = true;
@@ -503,7 +655,7 @@ function onCorrect(){
           state.zoneUnlockedInRegion[ri] = current.zoneIndex + 1;
         }
         saveState();
-        burst("Gym Cleared! 🏆");
+        setTimeout(() => showGymResult(true), 500);
       } else {
         state.masterCleared[current.regionIndex] = true;
         if(current.regionIndex === state.regionUnlocked && current.regionIndex < REGIONS.length-1){
@@ -512,8 +664,8 @@ function onCorrect(){
         }
         saveState();
         burst("Region Mastered! 👑");
+        setTimeout(toMap, 1300);
       }
-      setTimeout(toMap, 1300);
       return;
     }
     burst("Nice!");
@@ -526,9 +678,11 @@ function onCorrect(){
     setTimeout(()=>{
       const st = zoneStatus(current.regionIndex, current.zoneIndex);
       if(st.bossReady && !st.cleared && current.mode !== 'boss'){
-        current.mode = 'boss'; current.streak = 0;
-        const flag = document.getElementById('bossFlag');
-        flag.className = 'boss-flag'; flag.style.display='flex'; flag.textContent='GYM LEADER';
+        current.mode = 'boss'; current.streak = 0; current.misses = 0;
+        setBattleChrome();
+        nextWord({silent:true});
+        announceGymStart(() => speakWord());
+        return;
       }
       nextWord();
     }, 1000);
@@ -539,13 +693,62 @@ function burst(msg){
   el.textContent = msg;
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
 }
+function allVoices(){
+  try{ return speechSynthesis.getVoices() || []; }catch(e){ return []; }
+}
+function findVoice(needles){
+  const voices = allVoices();
+  for(const needle of needles){
+    const hit = voices.find(v => (v.name || '').toLowerCase().includes(needle));
+    if(hit) return hit;
+  }
+  return voices.find(v => (v.lang || '').toLowerCase().startsWith('en')) || voices[0] || null;
+}
+function davidVoice(){
+  return findVoice(['david', 'alex', 'daniel', 'fred']);
+}
+function ziraVoice(){
+  return findVoice(['zira', 'samantha', 'victoria', 'karen']);
+}
+function pickSpeakVoice(){
+  const gender = Math.random() < 0.5 ? 'female' : 'male';
+  const voice = gender === 'female' ? ziraVoice() : davidVoice();
+  return {
+    gender,
+    name: voice ? voice.name : null,
+    uri: voice ? voice.voiceURI : null,
+  };
+}
+function resolveVoice(sel){
+  if(!sel) return null;
+  if(sel.gender === 'female') return ziraVoice();
+  if(sel.gender === 'male') return davidVoice();
+  return findVoice([sel.name || '']);
+}
+if(window.speechSynthesis){
+  speechSynthesis.addEventListener('voiceschanged', () => {});
+  try{ speechSynthesis.getVoices(); }catch(e){}
+}
+function stopSpeak(){
+  try{ speechSynthesis.cancel(); }catch(e){}
+}
+function speakText(text, sel){
+  if(!text) return;
+  try{
+    stopSpeak();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.85;
+    u.pitch = 1;
+    const voice = resolveVoice(sel);
+    if(voice) u.voice = voice;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
 function speakWord(){
   if(!current.word) return;
   try{
-    const u = new SpeechSynthesisUtterance(current.word);
-    u.rate = 0.85; u.pitch = 1.1;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+    if(!current.voice) current.voice = pickSpeakVoice();
+    speakText(current.word, current.voice);
   }catch(e){}
 }
 

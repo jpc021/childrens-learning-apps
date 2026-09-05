@@ -4,7 +4,7 @@ A single-file, offline sight-word learning game for iPad (or any browser), built
 
 ## What it is
 
-Your kid explores a map of **regions**, each split into 8 **zones**. Every zone is tied to a small set of sight words. A critter appears, speaks its word out loud, and your kid taps the matching word among a few choices to "catch" it. Catch a word 5 times and its critter maxes out (wings → spike → crown) and retires from the rotation. Clear enough catches in a zone and its **Gym Leader** appears — a 3-in-a-row streak challenge. Clear every gym in a region and the **Region Master** unlocks — a 5-in-a-row challenge across every word in that region. Beating the Master unlocks the next region.
+Your kid explores a map of **regions**, each split into 8 **zones**. Every zone is tied to a small set of sight words. A critter appears, speaks its word out loud, and your kid taps the matching word among a few choices to "catch" it. Catch a word 5 times and its critter maxes out (wings → spike → crown) and retires from the rotation. Clear enough catches in a zone and its **Gym Battle** starts — get 3 correct in a row to beat the gym; 3 misses and you return to the map to retry. Words are spoken with **David** or **Zira** when those voices are installed (Safari falls back to Alex/Daniel/Fred and Samantha/Victoria/Karen), a random gender per question. Clear every gym in a region and the **Region Master** unlocks — a 5-in-a-row challenge across every word in that region. Beating the Master unlocks the next region.
 
 A **Dex** screen (tabbed by region) shows every critter discovered so far, with star ratings, and "???" placeholders for anything not yet caught.
 
@@ -77,10 +77,12 @@ Near the top of the script:
 ```js
 const MAX_LEVEL = 5;            // catches needed to max out a word
 const CATCHES_PER_BOSS = 8;     // cumulative zone catches before the gym unlocks
+const GYM_STREAK = 3;           // correct-in-a-row to beat a gym
+const GYM_MISSES = 3;           // misses in one gym visit = retry from the map
 const MASTER_STREAK = 5;        // correct-in-a-row needed to beat the Region Master
 ```
 
-Turn these up or down as your kid's skill grows — e.g., raise `CATCHES_PER_BOSS` if gyms are unlocking too fast, or lower `MASTER_STREAK` if the master trial feels too long for a 5-year-old.
+Gyms are 3-in-a-row; a miss resets the streak, and 3 misses send you back to the map with the gym still open. Turn these knobs up or down as your kid's skill grows — e.g., raise `CATCHES_PER_BOSS` if gyms are unlocking too fast, or lower `MASTER_STREAK` if the master trial feels too long for a 5-year-old.
 
 ### Extending beyond words: a future math (or phonics) region
 
