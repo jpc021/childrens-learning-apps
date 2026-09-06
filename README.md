@@ -1,6 +1,6 @@
 # Wild
 
-A pair of kid-friendly learning games — **WordWild** (sight words) and **NumberWild** (numbers and math) — plus a home page that links to both.
+A set of kid-friendly learning games — **WordWild** (sight words), **NumberWild** (numbers and math), and **PianoWild** (keys and treble-clef notes) — plus a home page that links to all three.
 
 No app store, no build tools, no accounts. Progress stays on the device.
 
@@ -18,9 +18,10 @@ Progress saves in that browser on that iPad. Nothing is uploaded. The same URL o
 
 ## Play a file locally
 
-Open `index.html` in a browser, or open `word-wild/wordwild.html` / `number-wild/numberwild.html` directly.
+Open `index.html` in a browser, or open `word-wild/wordwild.html` / `number-wild/numberwild.html` / `piano-wild/pianowild.html` directly.
 
 ## Games
 
 - [WordWild](word-wild/README.md) — sight-word catch-and-level adventure
 - [NumberWild](number-wild/README.md) — numbers and math facts, same adventure style
+- [PianoWild](piano-wild/README.md) — piano keys and treble-clef notes, same adventure style
