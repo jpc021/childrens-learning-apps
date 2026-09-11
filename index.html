@@ -23,6 +23,9 @@
     --piano-sky:#c9b6f0;
     --piano-ivory:#f7f1e3;
     --piano-coral:#e05a8a;
+    --note-sky:#ffd8a3;
+    --note-ivory:#fff2d6;
+    --note-coral:#d97b28;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
   html,body{margin:0;padding:0;height:100%;overflow:hidden;
@@ -48,12 +51,14 @@
   .game.word{background:linear-gradient(180deg,var(--word-sky),var(--word-grass));}
   .game.number{background:linear-gradient(180deg,var(--num-sky),var(--num-sand));}
   .game.piano{background:linear-gradient(180deg,var(--piano-sky),var(--piano-ivory));}
+  .game.note{background:linear-gradient(180deg,var(--note-sky),var(--note-ivory));}
   .game .logo{width:88px;height:88px;filter:drop-shadow(0 4px 0 rgba(0,0,0,0.12));}
   .game .logo svg{width:100%;height:100%;display:block;}
   .game h2{margin:0;font-size:32px;font-weight:800;letter-spacing:0.2px;}
   .game.word h2 em{font-style:normal;color:var(--word-coral);}
   .game.number h2 em{font-style:normal;color:var(--num-coral);}
   .game.piano h2 em{font-style:normal;color:var(--piano-coral);}
+  .game.note h2 em{font-style:normal;color:var(--note-coral);}
   .game .tag{margin:0;font-size:15px;font-weight:700;opacity:0.75;}
 </style>
 </head>
@@ -115,6 +120,25 @@
       </span>
       <h2>Piano<em>Wild</em></h2>
       <p class="tag">Keys and notes</p>
+    </a>
+    <a class="game note" href="note-wild/notewild.html">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#2a1f2e" stroke-width="1.2" stroke-linecap="round">
+            <line x1="6" y1="12" x2="30" y2="12"/>
+            <line x1="6" y1="16" x2="30" y2="16"/>
+            <line x1="6" y1="20" x2="30" y2="20"/>
+            <line x1="6" y1="24" x2="30" y2="24"/>
+            <line x1="6" y1="28" x2="30" y2="28"/>
+          </g>
+          <ellipse cx="17" cy="26" rx="4.4" ry="3.4" fill="#d97b28"/>
+          <line x1="20.8" y1="26" x2="20.8" y2="10" stroke="#2a1f2e" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M20.8 10 C26.5 11 26.5 15.5 21 14.5" fill="#d97b28"/>
+          <circle cx="26" cy="12" r="1.2" fill="#2a1f2e"/>
+        </svg>
+      </span>
+      <h2>Note<em>Wild</em></h2>
+      <p class="tag">Read treble &amp; bass</p>
     </a>
   </div>
 </div>
